@@ -16,14 +16,51 @@ import android.provider.Settings
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.util.Log
+import android.view.Surface
+import android.view.SurfaceHolder
 import android.widget.Toast
+import kotlinx.android.synthetic.main.activity_main.*
 import pub.devrel.easypermissions.AfterPermissionGranted
 import pub.devrel.easypermissions.EasyPermissions
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
+    private val MAX_PREVIEW_WIDTH = 1280
+    private val MAX_PREVIEW_HEIGHT = 720
+    private lateinit var captureSession: CameraCaptureSession
+    private lateinit var captureRequestBuilder: CaptureRequest.Builder
+    private val cameraManager by lazy {
+        // Must wait for onCreate to finish. Therefore used lazy
+        getSystemService(Context.CAMERA_SERVICE) as CameraManager
+    }
+
+
     private lateinit var backgroundThread: HandlerThread
     private lateinit var backgroundHandler: Handler
     private lateinit var cameraDevice: CameraDevice
+    private val deviceStateCallback =
+        object : CameraDevice.StateCallback() { // Object expression, declares anonymous object
+            override fun onOpened(camera: CameraDevice) {
+                Log.d(TAG, "camera device opened")
+                if (camera != null) {
+                    cameraDevice = camera
+                    previewSession()
+
+                }
+            }
+
+            override fun onDisconnected(camera: CameraDevice) {
+                Log.d(TAG, "camera deviced disconnected")
+                camera?.close()
+            }
+
+            override fun onError(camera: CameraDevice, error: Int) {
+                Log.d(TAG, "camera device error")
+                this@MainActivity.finish()
+            }
+
+        }
+
 
     companion object {
         const val REQUEST_CAMERA_PERMISSION = 100
@@ -45,47 +82,40 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        startBackgroundThread()
+    val surfaceReadyCallback = object : SurfaceHolder.Callback {
+        override fun surfaceChanged(p0: SurfaceHolder?, p1: Int, p2: Int, p3: Int) {}
+        override fun surfaceDestroyed(p0: SurfaceHolder?) {}
 
-
-    }
-
-    override fun onPause() {
-        stopBackgroundThread()
-        super.onPause()
-    }
-
-
-    private val deviceStateCallback =
-        object : CameraDevice.StateCallback() { // Object expression, declares anonymous object
-            override fun onOpened(camera: CameraDevice) {
-                Log.d(TAG, "camera device opened")
-                if (camera != null)
-                    cameraDevice = camera
-                else
-                    Log.d(TAG, "Camera is null")
-            }
-
-            override fun onDisconnected(camera: CameraDevice) {
-                Log.d(TAG, "camera deviced disconnected")
-                camera?.close()
-            }
-
-            override fun onError(camera: CameraDevice, error: Int) {
-                Log.d(TAG, "camera device error")
-                this@MainActivity.finish()
-            }
-
+        override fun surfaceCreated(p0: SurfaceHolder?) {
+            launchCamera()
         }
+    }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         startBackgroundThread()
-        launchCamera()
+        surfaceView.holder.addCallback(surfaceReadyCallback)
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+        startBackgroundThread()
+
+    }
+
+    override fun onPause() {
+        closeCamera()
+        stopBackgroundThread()
+        super.onPause()
+    }
+
+    override fun onDestroy() {
+        closeCamera()
+        stopBackgroundThread()
+        super.onDestroy()
     }
 
 
@@ -96,6 +126,36 @@ class MainActivity : AppCompatActivity() {
 
     private fun hasCameraPermission(): Boolean {
         return EasyPermissions.hasPermissions(this, Manifest.permission.CAMERA)
+    }
+
+
+    private fun previewSession() {
+        val previewSurface = surfaceView.holder.surface
+        captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
+        captureRequestBuilder.addTarget(previewSurface)
+
+        val captureCallback = object : CameraCaptureSession.StateCallback() {
+            override fun onConfigureFailed(session: CameraCaptureSession) {
+                Log.e(TAG, "Creating capture session failed")
+            }
+
+            override fun onConfigured(session: CameraCaptureSession) {
+                if (session != null) {
+                    captureSession = session
+                    captureRequestBuilder.set(
+                        CaptureRequest.CONTROL_AF_MODE,
+                        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
+                    )
+                    captureSession.setRepeatingRequest(
+                        captureRequestBuilder.build(),
+                        object : CameraCaptureSession.CaptureCallback() {},
+                        Handler { true })
+                }
+            }
+        }
+
+        cameraDevice.createCaptureSession(mutableListOf(previewSurface), captureCallback, null)
+
     }
 
     private fun launchCamera() {
@@ -112,9 +172,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
+    private fun closeCamera() {
+        if (this::captureSession.isInitialized)
+            captureSession.close()
+        if (this::cameraDevice.isInitialized)
+            cameraDevice.close()
+    }
+
     private fun startCameraSession() {
         try {
-            val cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
             if (cameraManager.cameraIdList.isEmpty()) {
                 // no cameras
                 Toast.makeText(this, "No Cameras available", Toast.LENGTH_SHORT).show()
@@ -132,6 +199,30 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    private fun areDimensionsSwapped(displayRotation: Int, cameraCharacteristics: CameraCharacteristics): Boolean {
+        when (displayRotation) {
+            Surface.ROTATION_0, Surface.ROTATION_180 -> { // -> used to indicate condition
+                if (cameraCharacteristics.get(CameraCharacteristics.SENSOR_ORIENTATION) == 90 || cameraCharacteristics.get(
+                        CameraCharacteristics.SENSOR_ORIENTATION
+                    ) == 270
+                ) {
+                    return true
+                }
+            }
+            Surface.ROTATION_90, Surface.ROTATION_270 -> {
+                if (cameraCharacteristics.get(CameraCharacteristics.SENSOR_ORIENTATION) == 0 || cameraCharacteristics.get(
+                        CameraCharacteristics.SENSOR_ORIENTATION
+                    ) == 180
+                ) {
+                    return true
+                }
+            }
+            else -> {
+                // invalid display rotation
+            }
+        }
+        return false
+    }
 
 }
 
