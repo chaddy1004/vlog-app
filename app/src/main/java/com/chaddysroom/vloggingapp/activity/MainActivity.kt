@@ -1,10 +1,9 @@
-package com.chaddysroom.vloggingapp
+package com.chaddysroom.vloggingapp.activity
 
 import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.hardware.camera2.*
-import android.media.ImageReader
 import android.media.MediaRecorder
 import android.net.Uri
 import android.support.v7.app.AppCompatActivity
@@ -12,13 +11,13 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
-import android.provider.MediaStore
 import android.util.Log
 import android.util.SparseIntArray
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.widget.Button
 import android.widget.Toast
+import com.chaddysroom.vloggingapp.R
 import kotlinx.android.synthetic.main.activity_main.*
 import pub.devrel.easypermissions.EasyPermissions
 import java.io.*
@@ -26,6 +25,7 @@ import java.lang.IllegalArgumentException
 import java.lang.IllegalStateException
 import java.text.SimpleDateFormat
 import java.util.*
+import com.chaddysroom.vloggingapp.utils.file_util.galleryAddPic
 
 class MainActivity : AppCompatActivity() {
     private val MAX_PREVIEW_WIDTH = 1920
@@ -394,8 +394,10 @@ class MainActivity : AppCompatActivity() {
         val rotation = this.windowManager?.defaultDisplay?.rotation
         val sensorOrientation = getSpecificCharacteristics(CAMERA_CURRENT, CameraCharacteristics.SENSOR_ORIENTATION)
         when (sensorOrientation) {
-            SENSOR_DEFAULT_ORIENTATION_DEGREES -> mediaRecorder.setOrientationHint(DEFAULT_ORIENTATION.get(rotation!!))
-            SENSOR_INVERSE_ORIENTATION_DEGREES -> mediaRecorder.setOrientationHint(INVERSE_ORIENTATION.get(rotation!!))
+            SENSOR_DEFAULT_ORIENTATION_DEGREES -> mediaRecorder.setOrientationHint(
+                DEFAULT_ORIENTATION.get(rotation!!))
+            SENSOR_INVERSE_ORIENTATION_DEGREES -> mediaRecorder.setOrientationHint(
+                INVERSE_ORIENTATION.get(rotation!!))
         }
         currentVideoFile = createVideoFile()
         mediaRecorder.apply {
@@ -431,10 +433,8 @@ class MainActivity : AppCompatActivity() {
         isRecording = false
         Toast.makeText(this, "STOPPED RECORDING VIDEO AND AUDIO", Toast.LENGTH_LONG).show()
         startPreviewSession(CAMERA_CURRENT)
+        galleryAddPic(currentVideoFile, this@MainActivity)
     }
-
-
-
 
 }
 
