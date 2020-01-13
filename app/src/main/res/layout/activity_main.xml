@@ -24,7 +24,7 @@
             app:layout_constraintBottom_toBottomOf="parent">
 
 
-    <Button android:layout_width="wrap_content"
+        <Button  android:layout_width="wrap_content"
                  android:id="@+id/shutter_button"
                  android:layout_height="wrap_content"
                  android:background="@drawable/shutter_button"
@@ -33,6 +33,17 @@
                  app:layout_constraintTop_toTopOf="parent"
                  app:layout_constraintBottom_toBottomOf="parent"
                  android:layout_marginBottom="0dp"/>
+
+        <Button android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:id="@+id/cameraswap_button"
+                android:foreground="@drawable/ic_switch"
+                android:backgroundTint="@color/colorWhite"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintLeft_toRightOf="@id/shutter_button"/>
+
 
     </android.support.constraint.ConstraintLayout>
 
