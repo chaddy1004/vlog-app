@@ -2,10 +2,10 @@ package com.chaddysroom.vloggingapp.activity
 
 import android.Manifest
 import android.content.Context
-import android.content.Intent
+import android.graphics.*
 import android.hardware.camera2.*
+import android.media.ImageReader
 import android.media.MediaRecorder
-import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
@@ -15,9 +15,13 @@ import android.util.Log
 import android.util.SparseIntArray
 import android.view.Surface
 import android.view.SurfaceHolder
+import android.view.SurfaceView
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.Toast
 import com.chaddysroom.vloggingapp.R
+import com.chaddysroom.vloggingapp.utils.draw_util.SurfaceViewDraw
+import com.chaddysroom.vloggingapp.utils.draw_util.drawRect
 import kotlinx.android.synthetic.main.activity_main.*
 import pub.devrel.easypermissions.EasyPermissions
 import java.io.*
@@ -46,12 +50,15 @@ class MainActivity : AppCompatActivity() {
         // Must wait for onCreate to finish. Therefore used lazy (lazy for val, lateinit for var)
         getSystemService(Context.CAMERA_SERVICE) as CameraManager
     }
+    private val surfaceDrawer by lazy {
+        SurfaceViewDraw(overlayView, this@MainActivity)
+    }
+
 
     // Companion object initialization
     companion object {
         const val REQUEST_CAMERA_PERMISSION = 100
         const val REQUEST_AUDIO_AND_STORAGE_PERMISSION = 101
-        const val REQUEST_STORAGE_PERMISSION = 102
         const val TAG = "MainActivity"
         private val SENSOR_DEFAULT_ORIENTATION_DEGREES = 90
         private val SENSOR_INVERSE_ORIENTATION_DEGREES = 270
@@ -72,12 +79,14 @@ class MainActivity : AppCompatActivity() {
 
     // MediaRecorder Related Initialization
     private lateinit var currentVideoFile: File
-    private var isCaptured: Boolean = false
     private var isRecording: Boolean = false
     private val mediaRecorder by lazy {
         MediaRecorder()
     }
 
+    private val imageReader_jpeg by lazy {
+        //        ImageReader.newInstance(1920, 1080, ImageFormat.JPEG, 1, )
+    }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -142,9 +151,39 @@ class MainActivity : AppCompatActivity() {
     val surfaceReadyCallback = object : SurfaceHolder.Callback {
         override fun surfaceChanged(p0: SurfaceHolder?, p1: Int, p2: Int, p3: Int) {}
         override fun surfaceDestroyed(p0: SurfaceHolder?) {}
-
         override fun surfaceCreated(p0: SurfaceHolder?) {
             launchCamera()
+        }
+    }
+
+
+    val overlayReadyCallback = object : SurfaceHolder.Callback {
+        override fun surfaceChanged(p0: SurfaceHolder?, p1: Int, p2: Int, p3: Int) {}
+        override fun surfaceDestroyed(p0: SurfaceHolder?) {}
+        override fun surfaceCreated(p0: SurfaceHolder?) {
+        }
+    }
+
+
+    fun drawRect(canvas: Canvas, rect: Rect) {
+        val paint = Paint()
+        paint.color = Color.YELLOW
+        canvas.drawRect(rect, paint)
+    }
+
+    private val faceDetectorCallback = object : CameraCaptureSession.CaptureCallback() {
+        override fun onCaptureCompleted(
+            session: CameraCaptureSession,
+            request: CaptureRequest,
+            result: TotalCaptureResult
+        ) {
+            super.onCaptureCompleted(session, request, result)
+            val faces = result.get(CaptureResult.STATISTICS_FACES)
+            Log.i("FACESSSSSSSS", faces!!.size.toString())
+            for (face in faces!!) { //!! is a null check operator. If it is null, it will throw null pointer exception
+                val bounds = face.bounds
+                surfaceDrawer.drawBoundingBox(boundingBox = bounds)
+            }
         }
     }
 
@@ -155,9 +194,13 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         startBackgroundThread()
-        surfaceView.holder.addCallback(surfaceReadyCallback)
-        surfaceView.holder.setFixedSize(MAX_PREVIEW_WIDTH, MAX_PREVIEW_HEIGHT)
-        val cameraSwap_button = findViewById<Button>(R.id.cameraswap_button)
+        cameraView.holder.addCallback(surfaceReadyCallback)
+        cameraView.holder.setFixedSize(MAX_PREVIEW_WIDTH, MAX_PREVIEW_HEIGHT)
+
+        overlayView.setZOrderMediaOverlay(true)
+        overlayView.holder.setFormat(PixelFormat.TRANSPARENT)
+
+        val cameraSwap_button = findViewById<ImageButton>(R.id.cameraswap_button)
         cameraSwap_button.setOnClickListener {
             swapCameras()
         }
@@ -176,12 +219,6 @@ class MainActivity : AppCompatActivity() {
                         REQUEST_AUDIO_AND_STORAGE_PERMISSION,
                         *permissions
                     )
-//                    EasyPermissions.requestPermissions(
-//                        this,
-//                        getString(R.string.exStorage_request_rationale),
-//                        REQUEST_AUDIO_PERMISSION,
-//                        Manifest.permission.RECORD_AUDIO
-//                    )
                 }
             } else if (isRecording) {
                 stopMediaRecorder()
@@ -216,11 +253,10 @@ class MainActivity : AppCompatActivity() {
     //Various sessions//
     ////////////////////
     private fun previewSession() {
-        val previewSurface = surfaceView.holder.surface
-
+        val previewSurface = cameraView.holder.surface
+        val overlaySurface = overlayView.holder.surface
         captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
         captureRequestBuilder.addTarget(previewSurface)
-
         val captureCallback = object : CameraCaptureSession.StateCallback() {
             override fun onConfigureFailed(session: CameraCaptureSession) {
                 Log.e(TAG, "Creating capture session failed")
@@ -233,9 +269,13 @@ class MainActivity : AppCompatActivity() {
                         CaptureRequest.CONTROL_AF_MODE,
                         CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
                     )
+                    captureRequestBuilder.set(
+                        CaptureRequest.STATISTICS_FACE_DETECT_MODE,
+                        CaptureRequest.STATISTICS_FACE_DETECT_MODE_FULL
+                    )
                     captureSession.setRepeatingRequest(
                         captureRequestBuilder.build(),
-                        object : CameraCaptureSession.CaptureCallback() {},
+                        faceDetectorCallback,
                         Handler { true })
                 }
             }
@@ -245,9 +285,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun recordingSession() {
         setupMediaRecorder()
-
-        val previewSurface = surfaceView.holder.surface
+        val previewSurface = cameraView.holder.surface
         val recordSurface = mediaRecorder.surface
+//        val jpeg_surface = imageReader_jpeg.surface
 
         captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
         captureRequestBuilder.addTarget(previewSurface)
@@ -270,7 +310,6 @@ class MainActivity : AppCompatActivity() {
                         object : CameraCaptureSession.CaptureCallback() {},
                         Handler { true })
                     isRecording = true
-                    mediaRecorder.start()
                 }
 
             }
@@ -293,7 +332,7 @@ class MainActivity : AppCompatActivity() {
     private fun launchCamera() {
         if (hasCameraPermission()) { // Only start camera session once permission is granted
             Log.d(TAG, "App has camera permission]")
-            startPreviewSession(CAMERA_BACK)
+            connectWithCamera(CAMERA_BACK)
         } else {
             EasyPermissions.requestPermissions(
                 this,
@@ -301,11 +340,11 @@ class MainActivity : AppCompatActivity() {
                 REQUEST_CAMERA_PERMISSION,
                 Manifest.permission.CAMERA
             )
-            launchCamera()
+            connectWithCamera(CAMERA_BACK)
         }
     }
 
-    private fun startPreviewSession(cameraDirection: String) {
+    private fun connectWithCamera(cameraDirection: String) {
         try {
             if (cameraManager.cameraIdList.isEmpty()) {
                 // no cameras
@@ -362,11 +401,11 @@ class MainActivity : AppCompatActivity() {
         if (CAMERA_CURRENT == CAMERA_FRONT) {
             CAMERA_CURRENT = CAMERA_BACK
             closeCamera()
-            startPreviewSession(CAMERA_CURRENT)
+            connectWithCamera(CAMERA_CURRENT)
         } else if (CAMERA_CURRENT == CAMERA_BACK) {
             CAMERA_CURRENT = CAMERA_FRONT
             closeCamera()
-            startPreviewSession(CAMERA_CURRENT)
+            connectWithCamera(CAMERA_CURRENT)
         } else {
             throw IllegalStateException("CAMERA NOT OPENED")
         }
@@ -395,9 +434,11 @@ class MainActivity : AppCompatActivity() {
         val sensorOrientation = getSpecificCharacteristics(CAMERA_CURRENT, CameraCharacteristics.SENSOR_ORIENTATION)
         when (sensorOrientation) {
             SENSOR_DEFAULT_ORIENTATION_DEGREES -> mediaRecorder.setOrientationHint(
-                DEFAULT_ORIENTATION.get(rotation!!))
+                DEFAULT_ORIENTATION.get(rotation!!)
+            )
             SENSOR_INVERSE_ORIENTATION_DEGREES -> mediaRecorder.setOrientationHint(
-                INVERSE_ORIENTATION.get(rotation!!))
+                INVERSE_ORIENTATION.get(rotation!!)
+            )
         }
         currentVideoFile = createVideoFile()
         mediaRecorder.apply {
@@ -418,6 +459,7 @@ class MainActivity : AppCompatActivity() {
             } catch (e: IOException) {
                 Log.e(TAG, e.toString())
             }
+            start()
         }
     }
 
@@ -432,7 +474,8 @@ class MainActivity : AppCompatActivity() {
         }
         isRecording = false
         Toast.makeText(this, "STOPPED RECORDING VIDEO AND AUDIO", Toast.LENGTH_LONG).show()
-        startPreviewSession(CAMERA_CURRENT)
+//        connectWithCamera(CAMERA_CURRENT)
+        previewSession()
         galleryAddPic(currentVideoFile, this@MainActivity)
     }
 
