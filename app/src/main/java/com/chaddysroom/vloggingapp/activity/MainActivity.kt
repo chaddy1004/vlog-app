@@ -54,6 +54,8 @@ class MainActivity : AppCompatActivity() {
         SurfaceViewDraw(overlayView, this@MainActivity)
     }
 
+    private var rotationMatrix = Matrix()
+
 
     // Companion object initialization
     companion object {
@@ -178,11 +180,29 @@ class MainActivity : AppCompatActivity() {
             result: TotalCaptureResult
         ) {
             super.onCaptureCompleted(session, request, result)
+            surfaceDrawer.clearScreen()
             val faces = result.get(CaptureResult.STATISTICS_FACES)
             Log.i("FACESSSSSSSS", faces!!.size.toString())
-            for (face in faces!!) { //!! is a null check operator. If it is null, it will throw null pointer exception
+            val displayRotation = this@MainActivity.windowManager?.defaultDisplay?.rotation
+            val height = overlayView.height
+            val width = overlayView.width
+            val activeArraySizeRect = getSpecificCharacteristics(CAMERA_CURRENT, CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE)!!
+            val s1 = width/activeArraySizeRect.width()
+            val s2 = height/activeArraySizeRect.height()
+            val sensorOrientation = getSpecificCharacteristics(CAMERA_CURRENT, CameraCharacteristics.SENSOR_ORIENTATION)!!
+            for (face in faces) { //!! is a null check operator. If it is null, it will throw null pointer exception
                 val bounds = face.bounds
-                surfaceDrawer.drawBoundingBox(boundingBox = bounds)
+                var boundsF = RectF(bounds)
+                if (displayRotation == 0){
+                    rotationMatrix.setRotate(sensorOrientation.toFloat())
+                    rotationMatrix.postScale(-1f, 1f)
+                    rotationMatrix.postTranslate(height.toFloat()-200, 2*width.toFloat()+400)
+                }
+                Log.e("RECTANGLE BEFORE", boundsF.toString())
+                rotationMatrix.mapRect(boundsF)
+                Log.e("RECTANGLE AFTER", boundsF.toString())
+                // Transformation
+                surfaceDrawer.drawBoundingBox(boundingBox = boundsF)
             }
         }
     }
@@ -254,7 +274,6 @@ class MainActivity : AppCompatActivity() {
     ////////////////////
     private fun previewSession() {
         val previewSurface = cameraView.holder.surface
-        val overlaySurface = overlayView.holder.surface
         captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
         captureRequestBuilder.addTarget(previewSurface)
         val captureCallback = object : CameraCaptureSession.StateCallback() {
