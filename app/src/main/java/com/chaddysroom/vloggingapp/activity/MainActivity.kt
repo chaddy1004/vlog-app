@@ -30,6 +30,7 @@ import java.lang.IllegalStateException
 import java.text.SimpleDateFormat
 import java.util.*
 import com.chaddysroom.vloggingapp.utils.file_util.galleryAddPic
+import com.chaddysroom.vloggingapp.utils.img_util.ImageProcesser
 
 class MainActivity : AppCompatActivity() {
     private val MAX_PREVIEW_WIDTH = 1920
@@ -55,6 +56,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var rotationMatrix = Matrix()
+    private var imageProcessor = ImageProcesser()
 
 
     // Companion object initialization
@@ -86,8 +88,8 @@ class MainActivity : AppCompatActivity() {
         MediaRecorder()
     }
 
-    private val imageReader_jpeg by lazy {
-        //        ImageReader.newInstance(1920, 1080, ImageFormat.JPEG, 1, )
+    private val imageReader by lazy {
+        ImageReader.newInstance(1920, 1080, ImageFormat.YUV_420_888, 5)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -167,11 +169,6 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    fun drawRect(canvas: Canvas, rect: Rect) {
-        val paint = Paint()
-        paint.color = Color.YELLOW
-        canvas.drawRect(rect, paint)
-    }
 
     private val faceDetectorCallback = object : CameraCaptureSession.CaptureCallback() {
         override fun onCaptureCompleted(
@@ -186,17 +183,17 @@ class MainActivity : AppCompatActivity() {
             val displayRotation = this@MainActivity.windowManager?.defaultDisplay?.rotation
             val height = overlayView.height
             val width = overlayView.width
-            val activeArraySizeRect = getSpecificCharacteristics(CAMERA_CURRENT, CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE)!!
-            val s1 = width/activeArraySizeRect.width()
-            val s2 = height/activeArraySizeRect.height()
-            val sensorOrientation = getSpecificCharacteristics(CAMERA_CURRENT, CameraCharacteristics.SENSOR_ORIENTATION)!!
+            val activeArraySizeRect =
+                getSpecificCharacteristics(CAMERA_CURRENT, CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE)!!
+            val sensorOrientation =
+                getSpecificCharacteristics(CAMERA_CURRENT, CameraCharacteristics.SENSOR_ORIENTATION)!!
             for (face in faces) { //!! is a null check operator. If it is null, it will throw null pointer exception
                 val bounds = face.bounds
-                var boundsF = RectF(bounds)
-                if (displayRotation == 0){
+                val boundsF = RectF(bounds)
+                if (displayRotation == 0) {
                     rotationMatrix.setRotate(sensorOrientation.toFloat())
                     rotationMatrix.postScale(-1f, 1f)
-                    rotationMatrix.postTranslate(height.toFloat()-200, 2*width.toFloat()+400)
+                    rotationMatrix.postTranslate(height.toFloat() - 200, 2 * width.toFloat() + 400)
                 }
                 Log.e("RECTANGLE BEFORE", boundsF.toString())
                 rotationMatrix.mapRect(boundsF)
@@ -244,6 +241,9 @@ class MainActivity : AppCompatActivity() {
                 stopMediaRecorder()
             }
         }
+
+
+        imageReader.setOnImageAvailableListener(imageProcessor, backgroundHandler)
         CAMERA_CURRENT = CAMERA_BACK // Initializing CURRENT_CAMERA
     }
 
@@ -274,8 +274,11 @@ class MainActivity : AppCompatActivity() {
     ////////////////////
     private fun previewSession() {
         val previewSurface = cameraView.holder.surface
+        val imgReaderSurface = imageReader.surface
+
         captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
         captureRequestBuilder.addTarget(previewSurface)
+        captureRequestBuilder.addTarget(imgReaderSurface)
         val captureCallback = object : CameraCaptureSession.StateCallback() {
             override fun onConfigureFailed(session: CameraCaptureSession) {
                 Log.e(TAG, "Creating capture session failed")
@@ -299,14 +302,15 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        cameraDevice.createCaptureSession(mutableListOf(previewSurface), captureCallback, backgroundHandler)
+        cameraDevice.createCaptureSession(mutableListOf(previewSurface, imgReaderSurface), captureCallback, backgroundHandler)
     }
 
     private fun recordingSession() {
         setupMediaRecorder()
         val previewSurface = cameraView.holder.surface
         val recordSurface = mediaRecorder.surface
-//        val jpeg_surface = imageReader_jpeg.surface
+        val imgReaderSurface = imageReader.surface
+
 
         captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
         captureRequestBuilder.addTarget(previewSurface)
@@ -382,8 +386,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun closeCamera() {
-        if (this::captureSession.isInitialized)
+        if (this::captureSession.isInitialized){
             captureSession.close()
+        }
+
         if (this::cameraDevice.isInitialized)
             cameraDevice.close()
     }
