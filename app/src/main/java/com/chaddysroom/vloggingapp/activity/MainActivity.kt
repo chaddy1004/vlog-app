@@ -315,6 +315,8 @@ class MainActivity : AppCompatActivity() {
         captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
         captureRequestBuilder.addTarget(previewSurface)
         captureRequestBuilder.addTarget(recordSurface)
+        captureRequestBuilder.addTarget(imgReaderSurface)
+
 
         val captureCallback = object : CameraCaptureSession.StateCallback() {
             override fun onConfigureFailed(session: CameraCaptureSession) {
@@ -338,7 +340,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         cameraDevice.createCaptureSession(
-            mutableListOf(previewSurface, recordSurface),
+            mutableListOf(previewSurface, recordSurface, imgReaderSurface),
             captureCallback,
             backgroundHandler
         )

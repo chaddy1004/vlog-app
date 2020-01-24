@@ -17,6 +17,7 @@ class ImageProcesser : ImageReader.OnImageAvailableListener {
     private fun processImg(img: Image): Image {
         // Your image processing code goes here
         var img_processed = img
+        Log.i("processImg", "Img processed")
         return img_processed
     }
 }
