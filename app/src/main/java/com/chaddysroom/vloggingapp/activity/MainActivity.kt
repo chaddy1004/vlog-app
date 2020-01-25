@@ -15,13 +15,11 @@ import android.util.Log
 import android.util.SparseIntArray
 import android.view.Surface
 import android.view.SurfaceHolder
-import android.view.SurfaceView
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.Toast
 import com.chaddysroom.vloggingapp.R
 import com.chaddysroom.vloggingapp.utils.draw_util.SurfaceViewDraw
-import com.chaddysroom.vloggingapp.utils.draw_util.drawRect
 import kotlinx.android.synthetic.main.activity_main.*
 import pub.devrel.easypermissions.EasyPermissions
 import java.io.*
@@ -30,7 +28,7 @@ import java.lang.IllegalStateException
 import java.text.SimpleDateFormat
 import java.util.*
 import com.chaddysroom.vloggingapp.utils.file_util.galleryAddPic
-import com.chaddysroom.vloggingapp.utils.img_util.ImageProcesser
+import com.chaddysroom.vloggingapp.utils.img_util.ImageProcessor
 
 class MainActivity : AppCompatActivity() {
     private val MAX_PREVIEW_WIDTH = 1920
@@ -56,7 +54,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var rotationMatrix = Matrix()
-    private var imageProcessor = ImageProcesser()
+    private var imageProcessor = ImageProcessor()
 
 
     // Companion object initialization
