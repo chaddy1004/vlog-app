@@ -4,7 +4,8 @@
 
 #include <jni.h>
 #include <string>
-
+#include <opencv2/opencv.hpp>
+using namespace cv;
 using namespace std;
 
 extern "C" JNIEXPORT jstring JNICALL
@@ -14,6 +15,16 @@ Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_helloworld(JNIEn
     //return an integer
     string hello = "Hello from JNI";
     return env->NewStringUTF(hello.c_str());
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_convert(JNIEnv *env, jobject, jlong addrRgba, jlong addrGray) {
+//return an integer
+    Mat &mRgb = *(Mat*)addrRgba;
+    Mat &mGray = *(Mat*)addrGray;
+    cvtColor(mRgb, mGray, CV_RGB2GRAY);
+    string msg = "COLOUR CONVERTED";
+    return env->NewStringUTF(msg.c_str());
 }
 
 
