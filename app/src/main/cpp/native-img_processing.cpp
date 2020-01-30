@@ -2,10 +2,11 @@
 // Created by Chad Paik on 2020-01-23.
 //
 
+#include <opencv2/opencv.hpp>
 #include <jni.h>
 #include <string>
-#include <opencv2/opencv.hpp>
-using namespace cv;
+
+
 using namespace std;
 
 extern "C" JNIEXPORT jstring JNICALL
@@ -16,15 +17,61 @@ Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_helloworld(JNIEn
     string hello = "Hello from JNI";
     return env->NewStringUTF(hello.c_str());
 }
+//
+//extern "C" JNIEXPORT jstring JNICALL
+//Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_convert(JNIEnv *env, jobject, jlong addrRgba,
+//                                                                        jlong addrGray) {
+////return an integer
+//    cv::Mat &mRgb = *(cv::Mat *) addrRgba;
+//    cv::Mat &mGray = *(cv::Mat *) addrGray;
+//    cv::cvtColor(mRgb, mGray, CV_RGB2GRAY);
+//    std::string msg = "COLOUR CONVERTED";
+//    return env->NewStringUTF(msg.c_str());
+//}
+//
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_receive(JNIEnv *env, jobject, jobject bytebuffer,
+                                                                        jint size) {
+    string outStr;
+    outStr.reserve(size / 20);
+    jbyte *ptr;
+    ptr = (jbyte *) (env)->GetDirectBufferAddress(bytebuffer);
+
+    if (!ptr) {
+        return env->NewStringUTF(string("NULL").c_str());
+    }
+
+    for (int i = 0; i < size / 20; i++) {
+        outStr[i] = to_string(ptr[i])[0];
+    }
+
+//    return env->NewStringUTF(std::string("NOT NULL").c_str());
+    return env->NewStringUTF(outStr.c_str());
+
+};
+
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_convert(JNIEnv *env, jobject, jlong addrRgba, jlong addrGray) {
-//return an integer
-    Mat &mRgb = *(Mat*)addrRgba;
-    Mat &mGray = *(Mat*)addrGray;
-    cvtColor(mRgb, mGray, CV_RGB2GRAY);
-    string msg = "COLOUR CONVERTED";
-    return env->NewStringUTF(msg.c_str());
-}
+Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_toMat(JNIEnv *env, jobject, jobject bytebuffer,
+                                                                        jint height, jint width) {
+    string outStr;
+    jbyte *ptr;
+    ptr = (jbyte *) (env)->GetDirectBufferAddress(bytebuffer);
+
+    if (!ptr) {
+        return env->NewStringUTF(string("NULL").c_str());
+    }
+
+    cv::Mat mat = cv::Mat(height, width, CV_8UC3, (void*)ptr);
+    cv::Mat mat2 = cv::Mat(height, width, CV_8UC3);
+    cv::cvtColor(mat, mat2, CV_YUV2RGB);
+//    return env->NewStringUTF(std::string("NOT NULL").c_str());
+    return env->NewStringUTF(string("successful").c_str());
+};
+
+
+
+
+
 
 
