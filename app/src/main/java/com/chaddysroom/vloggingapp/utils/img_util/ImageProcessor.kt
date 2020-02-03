@@ -36,9 +36,9 @@ class ImageProcessor : ImageReader.OnImageAvailableListener {
         val plane1 = planes[1]
         val plane2 = planes[2]
 
-        var y_mat = Mat(height, width, CV_8UC1, plane0.buffer)
-        var u_mat = Mat(height, width, CV_8UC1, plane1.buffer)
-        var v_mat = Mat(height, width, CV_8UC1, plane2.buffer)
+        val y_mat = Mat(height, width, CV_8UC1, plane0.buffer)
+        val u_mat = Mat(height, width, CV_8UC1, plane1.buffer)
+        val v_mat = Mat(height, width, CV_8UC1, plane2.buffer)
 
         var yuv_mat = Mat(height, width, CV_8UC3);
 
@@ -48,6 +48,11 @@ class ImageProcessor : ImageReader.OnImageAvailableListener {
         result = YUVMerge(y_mat.nativeObjAddr, u_mat.nativeObjAddr, v_mat.nativeObjAddr, yuv_mat.nativeObjAddr)
         Log.e("processImg", result.toString())
         Log.i("processImg", "Img processed")
+
+        y_mat.release()
+        u_mat.release()
+        v_mat.release()
+        yuv_mat.release()
 
         return "DoneProcessing"
     }
