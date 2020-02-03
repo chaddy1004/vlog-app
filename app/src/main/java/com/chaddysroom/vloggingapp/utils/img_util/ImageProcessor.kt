@@ -3,6 +3,8 @@ package com.chaddysroom.vloggingapp.utils.img_util
 import android.media.Image
 import android.media.ImageReader
 import android.util.Log
+import org.opencv.core.CvType.*
+import org.opencv.core.Mat
 import java.nio.ByteBuffer
 
 class ImageProcessor : ImageReader.OnImageAvailableListener {
@@ -13,9 +15,10 @@ class ImageProcessor : ImageReader.OnImageAvailableListener {
     external fun helloworld() : String
     external fun receive(bytebuffer: ByteBuffer, size: Int): String
     external fun toMat(bytebuffer: ByteBuffer, height: Int, width: Int): String
+    external fun YUVMerge(y_mat: Long, u_mat : Long, v_mat : Long, outYUV_mat : Long) : Int;
 
     override fun onImageAvailable(reader: ImageReader?) {
-        val img = reader!!.acquireLatestImage()
+        val img = reader?.acquireLatestImage() ?: return
         val planes = img.planes
         var message = ""
 //        Log.i("IMAGEPROCESSOR", "Latest Image Received")
@@ -30,27 +33,23 @@ class ImageProcessor : ImageReader.OnImageAvailableListener {
     private fun processImg(planes: Array<Image.Plane>, height:Int, width:Int): String {
         // Your image processing code goes here
         val plane0 = planes[0]
-        lateinit var plane_bytes : ByteArray
+        val plane1 = planes[1]
+        val plane2 = planes[2]
 
-//        if (plane0.buffer.hasArray()){
-//            plane0.buffer.get(plane_bytes)
-//        }
-//        else
-//            return "NOTING HERE"
-//
-        if(plane0.buffer.isDirect) {
-            Log.w("processImg", "BUFFER IS DIRECT~~!!!!!!!!!")
-        }
-        else
-        {
-            Log.w("processImg", "BUFFER NOT DIRECT~~!!!!!!!!!")
-        }
+        var y_mat = Mat(height, width, CV_8UC1, plane0.buffer)
+        var u_mat = Mat(height, width, CV_8UC1, plane1.buffer)
+        var v_mat = Mat(height, width, CV_8UC1, plane2.buffer)
+
+        var yuv_mat = Mat(height, width, CV_8UC3);
+
 //        plane0.buffer.get(plane_bytes)
-        var message = ""
+        var result = 0
+
+        result = YUVMerge(y_mat.nativeObjAddr, u_mat.nativeObjAddr, v_mat.nativeObjAddr, yuv_mat.nativeObjAddr)
+        Log.e("processImg", result.toString())
         Log.i("processImg", "Img processed")
-//        message = receive(plane0.buffer, 40)
-        message = toMat(plane0.buffer, height, width)
-        return message
+
+        return "DoneProcessing"
     }
 }
 

@@ -70,7 +70,30 @@ Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_toMat(JNIEnv *en
 };
 
 
+extern "C" JNIEXPORT jint JNICALL
+Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_YUVMerge(JNIEnv *env, jobject, jlong Yaddr, jlong Uaddr, jlong Vaddr, jlong YUVaddr) {
 
+    cv::Mat& Y_channel = *(reinterpret_cast<cv::Mat*>(Yaddr));
+    cv::Mat& U_channel = *(reinterpret_cast<cv::Mat*>(Uaddr));
+    cv::Mat& V_channel = *(reinterpret_cast<cv::Mat*>(Vaddr));
+    cv::Mat& outYUV = *(reinterpret_cast<cv::Mat*>(YUVaddr));
+
+    cv::Mat YUVArr[3] = {Y_channel, U_channel, V_channel};
+
+    cv::merge(YUVArr, 3, outYUV);
+
+    if(outYUV.rows == Y_channel.rows && outYUV.cols == Y_channel.cols)
+    {
+        return jint(0);
+    }
+    else
+    {
+        return jint(1);
+    }
+    //cv::Mat& outGray = *(reinterpret_cast<cv::Mat*>(grayAddr));
+
+    //cv::cvtColor(yuvMat, outGray, CV_YUV2GRAY_420);
+};
 
 
 
