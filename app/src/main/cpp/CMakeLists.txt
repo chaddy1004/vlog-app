@@ -6,6 +6,7 @@
 cmake_minimum_required(VERSION 3.4.1)
 
 include_directories(../../../../OpenCV-android-sdk/sdk/native/jni/include)
+include_directories(src/main/cpp)
 add_library( lib_opencv
         SHARED
         IMPORTED )
@@ -24,7 +25,9 @@ add_library( # Sets the name of the library.
              SHARED
 
              # Provides a relative path to your source file(s).
-        native-img_processing.cpp)
+        native-img_processing.cpp
+        )
+
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -39,15 +42,16 @@ find_library( # Sets the name of the path variable.
               # you want CMake to locate.
               log )
 
+
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
                        native-img_processing
-
                        lib_opencv
 
                        # Links the target library to the log library
                        # included in the NDK.
                        ${log-lib} )
+

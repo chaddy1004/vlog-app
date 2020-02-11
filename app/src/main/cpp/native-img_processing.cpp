@@ -3,8 +3,13 @@
 //
 
 #include <opencv2/opencv.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv/highgui.h>
 #include <jni.h>
 #include <string>
+#include "stb_image.h"
+#include "stb_image_write.h"
+#include "HelloWorld.h"
 
 
 using namespace std;
@@ -17,43 +22,13 @@ Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_helloworld(JNIEn
     string hello = "Hello from JNI";
     return env->NewStringUTF(hello.c_str());
 }
-//
-//extern "C" JNIEXPORT jstring JNICALL
-//Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_convert(JNIEnv *env, jobject, jlong addrRgba,
-//                                                                        jlong addrGray) {
-////return an integer
-//    cv::Mat &mRgb = *(cv::Mat *) addrRgba;
-//    cv::Mat &mGray = *(cv::Mat *) addrGray;
-//    cv::cvtColor(mRgb, mGray, CV_RGB2GRAY);
-//    std::string msg = "COLOUR CONVERTED";
-//    return env->NewStringUTF(msg.c_str());
-//}
-//
-extern "C" JNIEXPORT jstring JNICALL
-Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_receive(JNIEnv *env, jobject, jobject bytebuffer,
-                                                                        jint size) {
-    string outStr;
-    outStr.reserve(size / 20);
-    jbyte *ptr;
-    ptr = (jbyte *) (env)->GetDirectBufferAddress(bytebuffer);
 
-    if (!ptr) {
-        return env->NewStringUTF(string("NULL").c_str());
-    }
 
-    for (int i = 0; i < size / 20; i++) {
-        outStr[i] = to_string(ptr[i])[0];
-    }
-
-//    return env->NewStringUTF(std::string("NOT NULL").c_str());
-    return env->NewStringUTF(outStr.c_str());
-
-};
 
 
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_toMat(JNIEnv *env, jobject, jobject bytebuffer,
-                                                                        jint height, jint width) {
+                                                                      jint height, jint width) {
     string outStr;
     jbyte *ptr;
     ptr = (jbyte *) (env)->GetDirectBufferAddress(bytebuffer);
@@ -62,7 +37,7 @@ Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_toMat(JNIEnv *en
         return env->NewStringUTF(string("NULL").c_str());
     }
 
-    cv::Mat mat = cv::Mat(height, width, CV_8UC3, (void*)ptr);
+    cv::Mat mat = cv::Mat(height, width, CV_8UC3, (void *) ptr);
     cv::Mat mat2 = cv::Mat(height, width, CV_8UC3);
     cv::cvtColor(mat, mat2, CV_YUV2RGB);
 //    return env->NewStringUTF(std::string("NOT NULL").c_str());
@@ -70,31 +45,117 @@ Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_toMat(JNIEnv *en
 };
 
 
+
+
+
+
 extern "C" JNIEXPORT jint JNICALL
-Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_YUVMerge(JNIEnv *env, jobject, jlong Yaddr, jlong Uaddr, jlong Vaddr, jlong YUVaddr) {
+Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_YUV2RGB(JNIEnv *env, jobject, jint srcWidth,
+                                                                        jint srcHeight, jobject srcBuffer,
+                                                                        jstring dirName, jlong matptr) {
+    uint8_t *srcLumaPtr = reinterpret_cast<uint8_t *>(env->GetDirectBufferAddress(srcBuffer));
+    cv::Mat mYUV(srcHeight, srcWidth, CV_8UC1, srcLumaPtr);
+//    cv::Mat mYUV(srcHeight+srcHeight/2, srcWidth, CV_8UC1, srcLumaPtr);
 
-    cv::Mat& Y_channel = *(reinterpret_cast<cv::Mat*>(Yaddr));
-    cv::Mat& U_channel = *(reinterpret_cast<cv::Mat*>(Uaddr));
-    cv::Mat& V_channel = *(reinterpret_cast<cv::Mat*>(Vaddr));
-    cv::Mat& outYUV = *(reinterpret_cast<cv::Mat*>(YUVaddr));
+    cv::Mat &srcRGBA = *(cv::Mat *) matptr;
+//    cv::Mat srcRGBA(srcHeight, srcWidth, CV_8UC4);
+    cv::cvtColor(mYUV, srcRGBA, CV_YUV2RGBA_NV21);
+    const char *converted = env->GetStringUTFChars(dirName, 0);
 
-    cv::Mat YUVArr[3] = {Y_channel, U_channel, V_channel};
-
-    cv::merge(YUVArr, 3, outYUV);
-
-    if(outYUV.rows == Y_channel.rows && outYUV.cols == Y_channel.cols)
-    {
-        return jint(0);
+    string name = std::string(converted, strlen(converted));
+    int result = 0;
+//    result = stbi_write_png(converted, srcWidth, srcHeight, 4, srcRGBA.data, 4*srcWidth);
+//    result = HelloWorld();
+//z    result = cv::imwrite(name, srcRGBA);
+    if (srcRGBA.empty()) {
+        return 0;
+    } else {
+        return result;
     }
-    else
-    {
-        return jint(1);
-    }
-    //cv::Mat& outGray = *(reinterpret_cast<cv::Mat*>(grayAddr));
-
-    //cv::cvtColor(yuvMat, outGray, CV_YUV2GRAY_420);
-};
 
 
+}
 
+//extern "C"
+//JNIEXPORT jstring JNICALL
+//Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_surfaceTest(JNIEnv *env, jclass type, jint srcWidth, jint srcHeight, jobject srcBuffer,
+//                                                                jobject dstSurface, jstring path_, jint savefile) {
+//    const char *str = env->GetStringUTFChars(path_, 0);
+//
+//    // Code
+//
+//    LOGE("bob path:%s saveFile=%d", str, savefile);
+//
+//    uint8_t *srcLumaPtr = reinterpret_cast<uint8_t *>(env->GetDirectBufferAddress(srcBuffer));
+//
+//    if (srcLumaPtr == NULL) {
+//        LOGE("blit NULL pointer ERROR");
+//        return NULL;
+//    }
+//
+//    int dstWidth;
+//    int dstHeight;
+//
+//    cv::Mat mYuv(srcHeight + srcHeight / 2, srcWidth, CV_8UC1, srcLumaPtr);
+//
+//
+//    ANativeWindow *win = ANativeWindow_fromSurface(env, dstSurface);
+//    ANativeWindow_acquire(win);
+//
+//    ANativeWindow_Buffer buf;
+//
+//    dstWidth = srcHeight;
+//    dstHeight = srcWidth;
+//
+//    ANativeWindow_setBuffersGeometry(win, dstWidth, dstHeight, 0 /*format unchanged*/);
+//
+//    if (int32_t err = ANativeWindow_lock(win, &buf, NULL)) {
+//        LOGE("ANativeWindow_lock failed with error code %d\n", err);
+//        ANativeWindow_release(win);
+//        return NULL;
+//    }
+//
+//    uint8_t *dstLumaPtr = reinterpret_cast<uint8_t *>(buf.bits);
+//    Mat dstRgba(dstHeight, buf.stride, CV_8UC4,
+//                dstLumaPtr);        // TextureView buffer, use stride as width
+//    Mat srcRgba(srcHeight, srcWidth, CV_8UC4);
+//    Mat flipRgba(dstHeight, dstWidth, CV_8UC4);
+//
+//    // convert YUV -> RGBA
+//    cv::cvtColor(mYuv, flipRgba, CV_YUV2RGBA_NV21);
+//
+//    // Rotate 90 degree
+//    // rotateMat(flipRgba, 2);
+//
+//    LOGE(" ------- DATA -----------  \n dstWidth: %d   stride: %d ", dstRgba.cols, buf.stride);
+//
+//    // copy to TextureView surface
+//    uchar *dbuf;
+//    uchar *sbuf;
+//    dbuf = dstRgba.data;
+//    sbuf = flipRgba.data;
+//    int i;
+//    for (i = 0; i < flipRgba.rows; i++) {
+//        dbuf = dstRgba.data + i * buf.stride * 4;
+//        memcpy(dbuf, sbuf, flipRgba.cols * 4);
+//        sbuf += flipRgba.cols * 4;
+//    }
+//
+//
+//    // Draw some rectangles
+//    line(dstRgba, Point(dstWidth/2, 0), Point(dstWidth/2, dstHeight-1),Scalar(255, 255, 255));
+//    line(dstRgba, Point(0,dstHeight-1), Point(dstWidth-1, dstHeight-1),Scalar(255,255,255 ));
+//
+//    LOGE("bob dstWidth=%d height=%d", dstWidth, dstHeight);
+//    ANativeWindow_unlockAndPost(win);
+//    ANativeWindow_release(win);
+//
+//    // Release
+//    env->ReleaseStringUTFChars(path_, str);
+//
+//    //Ret
+//    return env->NewStringUTF("abc");
+//}
+//
+//
 

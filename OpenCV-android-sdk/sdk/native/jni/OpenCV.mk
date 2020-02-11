@@ -118,3 +118,4 @@ LOCAL_LDLIBS += $(foreach lib,$(OPENCV_EXTRA_COMPONENTS), -l$(lib))
 
 #restore the LOCAL_PATH
 LOCAL_PATH:=$(USER_LOCAL_PATH)
+
