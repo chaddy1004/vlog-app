@@ -7,10 +7,8 @@
 #include <opencv/highgui.h>
 #include <jni.h>
 #include <string>
-#include "stb_image.h"
-#include "stb_image_write.h"
-#include "HelloWorld.h"
-
+#include <android/bitmap.h>
+#include <android/native_window_jni.h>
 
 using namespace std;
 
@@ -54,27 +52,62 @@ Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_YUV2RGB(JNIEnv *
                                                                         jint srcHeight, jobject srcBuffer,
                                                                         jstring dirName, jlong matptr) {
     uint8_t *srcLumaPtr = reinterpret_cast<uint8_t *>(env->GetDirectBufferAddress(srcBuffer));
-    cv::Mat mYUV(srcHeight, srcWidth, CV_8UC1, srcLumaPtr);
+    cv::Mat mYUV(srcHeight + srcHeight / 2, srcWidth, CV_8UC1, srcLumaPtr);
 //    cv::Mat mYUV(srcHeight+srcHeight/2, srcWidth, CV_8UC1, srcLumaPtr);
 
-    cv::Mat &srcRGBA = *(cv::Mat *) matptr;
+    cv::Mat &flipRGBA = *(cv::Mat *) matptr;
+    cv::Mat srcRGBA = cv::Mat(srcHeight + srcHeight / 2, srcWidth, CV_8UC4);
+
 //    cv::Mat srcRGBA(srcHeight, srcWidth, CV_8UC4);
-    cv::cvtColor(mYUV, srcRGBA, CV_YUV2RGBA_NV21);
+    cv::cvtColor(mYUV, srcRGBA, CV_YUV2BGRA_NV21);
+    cv::transpose(srcRGBA, flipRGBA);
+    cv::flip(flipRGBA, flipRGBA, 1);
     const char *converted = env->GetStringUTFChars(dirName, 0);
 
     string name = std::string(converted, strlen(converted));
     int result = 0;
-//    result = stbi_write_png(converted, srcWidth, srcHeight, 4, srcRGBA.data, 4*srcWidth);
-//    result = HelloWorld();
-//z    result = cv::imwrite(name, srcRGBA);
     if (srcRGBA.empty()) {
         return 0;
     } else {
         return result;
     }
-
-
 }
+
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_Grayscale2Surface(JNIEnv *env, jobject, jint srcWidth,
+                                                                                  jint srcHeight, jobject srcBuffer,
+                                                                                  jobject dstSurface) {
+    uint8_t *srcLumaPtr = reinterpret_cast<uint8_t *>(env->GetDirectBufferAddress(srcBuffer));
+    cv::Mat mYUV(srcHeight, srcWidth, CV_8UC1, srcLumaPtr);
+    cv::Mat mGray(srcHeight, srcWidth, CV_8UC1);
+    cv::Mat surfaceGray(srcHeight, srcWidth, CV_8UC1);
+    cv::Mat flipGray(srcHeight, srcWidth, CV_8UC1);
+
+
+    cv::cvtColor(mYUV, mGray, CV_YUV2GRAY_NV21);
+    cv::transpose(mGray, flipGray);
+    cv::flip(flipGray, flipGray, 1);
+    if (mGray.empty()) {
+        return 0;
+    }
+
+    ANativeWindow *win = ANativeWindow_fromSurface(env, dstSurface);
+    ANativeWindow_acquire(win);
+    ANativeWindow_Buffer buf;
+
+
+    uint8_t *dstGrayptr = reinterpret_cast<uint8_t *>(buf.bits);
+    cv::Mat dstGray(srcWidth, buf.stride, CV_8UC1, dstGrayptr);
+
+
+    ANativeWindow_unlockAndPost(win);
+    ANativeWindow_release(win);
+
+    return 1;
+}
+
+
 
 //extern "C"
 //JNIEXPORT jstring JNICALL

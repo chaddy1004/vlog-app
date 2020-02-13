@@ -1,10 +1,13 @@
 package com.chaddysroom.vloggingapp.utils.img_util
 
+import android.content.Context
 import android.graphics.ImageFormat
 import android.media.Image
 import android.media.ImageReader
 import android.os.Environment
 import android.util.Log
+import android.view.SurfaceView
+import android.view.View
 import org.opencv.core.CvType.*
 import org.opencv.core.Mat
 import org.opencv.core.Scalar
@@ -14,37 +17,54 @@ import java.lang.IllegalArgumentException
 import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 import java.util.*
+import com.chaddysroom.vloggingapp.utils.file_util.galleryAddPic
 
-class ImageProcessor : ImageReader.OnImageAvailableListener {
+class ImageProcessor(surface: SurfaceView, context: Context) : ImageReader.OnImageAvailableListener, View.OnClickListener{
     init {
         System.loadLibrary("native-img_processing")
     }
 
+    private val mSurface = surface
     external fun helloworld(): String
     external fun receive(bytebuffer: ByteBuffer, size: Int): String
     external fun toMat(bytebuffer: ByteBuffer, height: Int, width: Int): String
-    external fun YUVMerge(y_mat: Long, u_mat: Long, v_mat: Long, outYUV_mat: Long): Int
     external fun YUV2RGB(srcWidth: Int, srcHeight: Int, YUVaddr: ByteBuffer, dirName: String, matptr: Long): Int
+    external fun Grayscale2Surface(srcWidth: Int, srcHeight: Int, YUVaddr: ByteBuffer, dirName: String, matptr: Long): Int
+//    private lateinit var img : Image
+    private lateinit var planes: Array<Image.Plane>
+    private var imgheight = 0
+    private var imgwidth = 0
+    private var capture = false
+    private val context = context
+    override fun onClick(v: View?) {
+        if (!capture){
+            capture = true
+        }
+    }
 
     override fun onImageAvailable(reader: ImageReader?) {
         val img = reader?.acquireLatestImage() ?: return
-        val planes = img.planes
-        var message = ""
-//        Log.i("IMAGEPROCESSOR", "Latest Image Received")
-//        Log.i("FORMAT", reader.imageFormat.toString())
-        Log.i("NDK", helloworld())
+
+
+        val message = ""
+        Log.i("IMAGEPROCESSOR", "Latest Image Received")
+        Log.i("FORMAT", reader.imageFormat.toString())
+//        Log.i("HEIGHT", img.height.toString())
+//        Log.i("WIDTH", img.width.toString())
         if (img.format != ImageFormat.YUV_420_888) {
             Log.e("ImageProcessor", "NOT_YUV_420_888")
         }
-
-        message = processImg(planes = planes, height = img.height, width = img.width)
+        if (capture){
+            save2file(planes=img.planes, height=img.height, width = img.width)
+            capture = false
+        }
         Log.e("RECEIVED", message)
         img.close()
-//        System.gc()
+
     }
 
 
-    private fun processImg(planes: Array<Image.Plane>, height: Int, width: Int): String {
+    private fun save2file(planes: Array<Image.Plane>, height: Int, width: Int): String {
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
         val filepath = Environment.getExternalStorageDirectory()
         val filename = "picture_${timestamp}.png"
@@ -54,9 +74,19 @@ class ImageProcessor : ImageReader.OnImageAvailableListener {
         val plane0 = planes[0]
         var result = -1;
         val mat = Mat(height, width, CV_8UC4, Scalar(0.0));
-        result = YUV2RGB(width, height, plane0.buffer, file.toString(), mat.nativeObjAddr)
+        Log.i("HEIGHT BEFORE", mat.height().toString())
+        Log.i("WIDTH BEFORE", mat.width().toString())
+        YUV2RGB(width, height, plane0.buffer, "asdf" ,mat.nativeObjAddr)
+        Log.i("HEIGHT AFTER", mat.height().toString())
+        Log.i("WIDTH AFTER", mat.width().toString())
         val hello = Imgcodecs.imwrite(file.toString(), mat)
+        galleryAddPic(file, context = context)
         return "DoneProcessing with $result $hello"
+    }
+
+    private fun render2surface(planes: Array<Image.Plane>, height:Int, width:Int):String{
+
+        return "asdf"
     }
 }
 

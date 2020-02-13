@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">VloggingApp</string>
+    <string name="app_name">Lumetix</string>
     <string name="camera_request_rationale">Camera app requires camera access</string>
     <string name="audio_request_rationale">Camera app requires audio access</string>
     <string name="exStorage_request_rationale">Camera app requires external storage write permission</string>

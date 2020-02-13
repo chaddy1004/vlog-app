@@ -15,10 +15,12 @@ import android.util.Log
 import android.util.SparseIntArray
 import android.view.Surface
 import android.view.SurfaceHolder
+import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.Toast
 import com.chaddysroom.vloggingapp.R
+import com.chaddysroom.vloggingapp.utils.MovableFloatingActionButton
 import com.chaddysroom.vloggingapp.utils.draw_util.SurfaceViewDraw
 import kotlinx.android.synthetic.main.activity_main.*
 import pub.devrel.easypermissions.EasyPermissions
@@ -31,8 +33,8 @@ import com.chaddysroom.vloggingapp.utils.file_util.galleryAddPic
 import com.chaddysroom.vloggingapp.utils.img_util.ImageProcessor
 
 class MainActivity : AppCompatActivity() {
-    private val MAX_PREVIEW_WIDTH = 1920
-    private val MAX_PREVIEW_HEIGHT = 1080
+    private val MAX_PREVIEW_WIDTH = 1440
+    private val MAX_PREVIEW_HEIGHT = 2560
 
     // camera related initializations
     private lateinit var cameraDevice: CameraDevice
@@ -53,8 +55,11 @@ class MainActivity : AppCompatActivity() {
         SurfaceViewDraw(overlayView, this@MainActivity)
     }
 
+    private val imageProcessor by lazy{
+        ImageProcessor(surface = cameraView, context=this@MainActivity)
+    }
+
     private var rotationMatrix = Matrix()
-    private var imageProcessor = ImageProcessor()
 
 
     // Companion object initialization
@@ -87,7 +92,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val imageReader by lazy {
-        ImageReader.newInstance(1920, 1080, ImageFormat.YUV_420_888, 5)
+        ImageReader.newInstance(MAX_PREVIEW_WIDTH, MAX_PREVIEW_HEIGHT, ImageFormat.YUV_420_888, 5)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -215,6 +220,11 @@ class MainActivity : AppCompatActivity() {
         overlayView.setZOrderMediaOverlay(true)
         overlayView.holder.setFormat(PixelFormat.TRANSPARENT)
 
+        val pictureShutter_button = findViewById<MovableFloatingActionButton>(R.id.pictureShutterButton)
+        pictureShutter_button.bringToFront()
+        pictureShutter_button.setOnClickListener {
+            imageProcessor.onClick(it)
+        }
         val cameraSwap_button = findViewById<ImageButton>(R.id.cameraswap_button)
         cameraSwap_button.setOnClickListener {
             swapCameras()
@@ -225,6 +235,7 @@ class MainActivity : AppCompatActivity() {
                 if (hasExStoragePermission() && hasAudioPermission()) { // Only start camera session once permission is granted
                     Log.d(TAG, "App has camera permission]")
                     recordingSession()
+                    Log.e(TAG, isRecording.toString())
                 } else {
                     val permissions =
                         arrayOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -247,6 +258,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // Hide the status bar.
+        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
+// Remember that you should never show the action bar if the
+// status bar is hidden, so hide that too if necessary.
+        actionBar?.hide()
         startBackgroundThread()
 
     }
@@ -279,7 +295,7 @@ class MainActivity : AppCompatActivity() {
         captureRequestBuilder.addTarget(imgReaderSurface)
         val captureCallback = object : CameraCaptureSession.StateCallback() {
             override fun onConfigureFailed(session: CameraCaptureSession) {
-                Log.e(TAG, "Creating capture session failed")
+                Log.e(TAG, "Creating capture session failed PREVIEW SESSION")
             }
 
             override fun onConfigured(session: CameraCaptureSession) {
@@ -318,7 +334,7 @@ class MainActivity : AppCompatActivity() {
 
         val captureCallback = object : CameraCaptureSession.StateCallback() {
             override fun onConfigureFailed(session: CameraCaptureSession) {
-                Log.e(TAG, "Creating capture session failed")
+                Log.e(TAG, "Creating capture session failed RECORDING SESSION")
             }
 
             override fun onConfigured(session: CameraCaptureSession) {
@@ -332,16 +348,18 @@ class MainActivity : AppCompatActivity() {
                         captureRequestBuilder.build(),
                         object : CameraCaptureSession.CaptureCallback() {},
                         Handler { true })
-                    isRecording = true
+                    mediaRecorder.start()
                 }
 
             }
         }
         cameraDevice.createCaptureSession(
             mutableListOf(previewSurface, recordSurface, imgReaderSurface),
+//            mutableListOf(recordSurface),
             captureCallback,
             backgroundHandler
         )
+        this@MainActivity.isRecording = true
         Toast.makeText(this, "RECORDING VIDEO AND AUDIO", Toast.LENGTH_LONG).show()
     }
     ////////////////////
@@ -473,7 +491,7 @@ class MainActivity : AppCompatActivity() {
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             setVideoEncodingBitRate(10000000)
             setVideoFrameRate(30)
-            setVideoSize(1920, 1080)
+            setVideoSize(MAX_PREVIEW_HEIGHT, MAX_PREVIEW_WIDTH)
             setVideoEncoder(MediaRecorder.VideoEncoder.H264)
             //Audio Source
             setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
@@ -484,11 +502,12 @@ class MainActivity : AppCompatActivity() {
             } catch (e: IOException) {
                 Log.e(TAG, e.toString())
             }
-            start()
         }
+
     }
 
     private fun stopMediaRecorder() {
+        Log.e("HEREEE", "heree")
         mediaRecorder.apply {
             try {
                 stop()
