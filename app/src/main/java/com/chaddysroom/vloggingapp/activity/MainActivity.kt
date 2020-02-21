@@ -56,7 +56,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val imageProcessor by lazy{
-        ImageProcessor(surface = cameraView, context=this@MainActivity)
+        ImageProcessor(surface = cameraView, context=this@MainActivity, currentCamera = false)
     }
 
     private var rotationMatrix = Matrix()
@@ -254,6 +254,7 @@ class MainActivity : AppCompatActivity() {
 
         imageReader.setOnImageAvailableListener(imageProcessor, backgroundHandler)
         CAMERA_CURRENT = CAMERA_BACK // Initializing CURRENT_CAMERA
+        imageProcessor.currentCamera = (CAMERA_CURRENT == CAMERA_FRONT)
     }
 
     override fun onResume() {
@@ -443,10 +444,12 @@ class MainActivity : AppCompatActivity() {
     private fun swapCameras() {
         if (CAMERA_CURRENT == CAMERA_FRONT) {
             CAMERA_CURRENT = CAMERA_BACK
+            imageProcessor.currentCamera = (CAMERA_CURRENT == CAMERA_FRONT)
             closeCamera()
             connectWithCamera(CAMERA_CURRENT)
         } else if (CAMERA_CURRENT == CAMERA_BACK) {
             CAMERA_CURRENT = CAMERA_FRONT
+            imageProcessor.currentCamera = (CAMERA_CURRENT == CAMERA_FRONT)
             closeCamera()
             connectWithCamera(CAMERA_CURRENT)
         } else {

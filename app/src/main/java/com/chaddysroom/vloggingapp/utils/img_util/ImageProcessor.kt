@@ -19,7 +19,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import com.chaddysroom.vloggingapp.utils.file_util.galleryAddPic
 
-class ImageProcessor(surface: SurfaceView, context: Context) : ImageReader.OnImageAvailableListener, View.OnClickListener{
+class ImageProcessor(surface: SurfaceView, context: Context, currentCamera: Boolean) : ImageReader.OnImageAvailableListener, View.OnClickListener{
     init {
         System.loadLibrary("native-img_processing")
     }
@@ -28,7 +28,7 @@ class ImageProcessor(surface: SurfaceView, context: Context) : ImageReader.OnIma
     external fun helloworld(): String
     external fun receive(bytebuffer: ByteBuffer, size: Int): String
     external fun toMat(bytebuffer: ByteBuffer, height: Int, width: Int): String
-    external fun YUV2RGB(srcWidth: Int, srcHeight: Int, YUVaddr: ByteBuffer, dirName: String, matptr: Long): Int
+    external fun YUV2RGB(srcWidth: Int, srcHeight: Int, YUVaddr: ByteBuffer, dirName: String, matptr: Long, frontCamera: Boolean): Int
     external fun Grayscale2Surface(srcWidth: Int, srcHeight: Int, YUVaddr: ByteBuffer, dirName: String, matptr: Long): Int
 //    private lateinit var img : Image
     private lateinit var planes: Array<Image.Plane>
@@ -36,6 +36,7 @@ class ImageProcessor(surface: SurfaceView, context: Context) : ImageReader.OnIma
     private var imgwidth = 0
     private var capture = false
     private val context = context
+    var currentCamera = currentCamera
     override fun onClick(v: View?) {
         if (!capture){
             capture = true
@@ -58,7 +59,7 @@ class ImageProcessor(surface: SurfaceView, context: Context) : ImageReader.OnIma
             save2file(planes=img.planes, height=img.height, width = img.width)
             capture = false
         }
-        Log.e("RECEIVED", message)
+        Log.e("RECEIVED", currentCamera.toString())
         img.close()
 
     }
@@ -76,7 +77,7 @@ class ImageProcessor(surface: SurfaceView, context: Context) : ImageReader.OnIma
         val mat = Mat(height, width, CV_8UC4, Scalar(0.0));
         Log.i("HEIGHT BEFORE", mat.height().toString())
         Log.i("WIDTH BEFORE", mat.width().toString())
-        YUV2RGB(width, height, plane0.buffer, "asdf" ,mat.nativeObjAddr)
+        YUV2RGB(width, height, plane0.buffer, "asdf" ,mat.nativeObjAddr, currentCamera)
         Log.i("HEIGHT AFTER", mat.height().toString())
         Log.i("WIDTH AFTER", mat.width().toString())
         val hello = Imgcodecs.imwrite(file.toString(), mat)

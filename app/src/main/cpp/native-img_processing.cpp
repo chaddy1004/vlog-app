@@ -50,7 +50,7 @@ Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_toMat(JNIEnv *en
 extern "C" JNIEXPORT jint JNICALL
 Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_YUV2RGB(JNIEnv *env, jobject, jint srcWidth,
                                                                         jint srcHeight, jobject srcBuffer,
-                                                                        jstring dirName, jlong matptr) {
+                                                                        jstring dirName, jlong matptr, jboolean frontCamera) {
     uint8_t *srcLumaPtr = reinterpret_cast<uint8_t *>(env->GetDirectBufferAddress(srcBuffer));
     cv::Mat mYUV(srcHeight + srcHeight / 2, srcWidth, CV_8UC1, srcLumaPtr);
 //    cv::Mat mYUV(srcHeight+srcHeight/2, srcWidth, CV_8UC1, srcLumaPtr);
@@ -61,7 +61,12 @@ Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_YUV2RGB(JNIEnv *
 //    cv::Mat srcRGBA(srcHeight, srcWidth, CV_8UC4);
     cv::cvtColor(mYUV, srcRGBA, CV_YUV2BGRA_NV21);
     cv::transpose(srcRGBA, flipRGBA);
-    cv::flip(flipRGBA, flipRGBA, 1);
+    if (frontCamera){
+        cv::flip(flipRGBA, flipRGBA, 0);
+    }
+    else {
+        cv::flip(flipRGBA, flipRGBA, 1);
+    }
     const char *converted = env->GetStringUTFChars(dirName, 0);
 
     string name = std::string(converted, strlen(converted));
