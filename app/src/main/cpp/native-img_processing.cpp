@@ -12,45 +12,13 @@
 
 using namespace std;
 
-extern "C" JNIEXPORT jstring JNICALL
-// The 1 is there because underscore is used in the folder name.
-// In function name, underscore by itself is used to replace backslashes from directory path
-Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_helloworld(JNIEnv *env, jobject) {
-    //return an integer
-    string hello = "Hello from JNI";
-    return env->NewStringUTF(hello.c_str());
-}
-
-
-
-
-extern "C" JNIEXPORT jstring JNICALL
-Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_toMat(JNIEnv *env, jobject, jobject bytebuffer,
-                                                                      jint height, jint width) {
-    string outStr;
-    jbyte *ptr;
-    ptr = (jbyte *) (env)->GetDirectBufferAddress(bytebuffer);
-
-    if (!ptr) {
-        return env->NewStringUTF(string("NULL").c_str());
-    }
-
-    cv::Mat mat = cv::Mat(height, width, CV_8UC3, (void *) ptr);
-    cv::Mat mat2 = cv::Mat(height, width, CV_8UC3);
-    cv::cvtColor(mat, mat2, CV_YUV2RGB);
-//    return env->NewStringUTF(std::string("NOT NULL").c_str());
-    return env->NewStringUTF(string("successful").c_str());
-};
-
-
-
-
 
 
 extern "C" JNIEXPORT jint JNICALL
 Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_YUV2RGB(JNIEnv *env, jobject, jint srcWidth,
                                                                         jint srcHeight, jobject srcBuffer,
-                                                                        jstring dirName, jlong matptr, jboolean frontCamera) {
+                                                                        jlong matptr,
+                                                                        jboolean frontCamera) {
     uint8_t *srcLumaPtr = reinterpret_cast<uint8_t *>(env->GetDirectBufferAddress(srcBuffer));
     cv::Mat mYUV(srcHeight + srcHeight / 2, srcWidth, CV_8UC1, srcLumaPtr);
 //    cv::Mat mYUV(srcHeight+srcHeight/2, srcWidth, CV_8UC1, srcLumaPtr);
@@ -61,15 +29,14 @@ Java_com_chaddysroom_vloggingapp_utils_img_1util_ImageProcessor_YUV2RGB(JNIEnv *
 //    cv::Mat srcRGBA(srcHeight, srcWidth, CV_8UC4);
     cv::cvtColor(mYUV, srcRGBA, CV_YUV2BGRA_NV21);
     cv::transpose(srcRGBA, flipRGBA);
-    if (frontCamera){
+    if (frontCamera) {
         cv::flip(flipRGBA, flipRGBA, 0);
-    }
-    else {
+    } else {
         cv::flip(flipRGBA, flipRGBA, 1);
     }
-    const char *converted = env->GetStringUTFChars(dirName, 0);
-
-    string name = std::string(converted, strlen(converted));
+//    const char *converted = env->GetStringUTFChars(dirName, 0);
+//
+//    string name = std::string(converted, strlen(converted));
     int result = 0;
     if (srcRGBA.empty()) {
         return 0;

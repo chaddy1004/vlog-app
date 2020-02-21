@@ -55,8 +55,8 @@ class MainActivity : AppCompatActivity() {
         SurfaceViewDraw(overlayView, this@MainActivity)
     }
 
-    private val imageProcessor by lazy{
-        ImageProcessor(surface = cameraView, context=this@MainActivity, currentCamera = false)
+    private val imageProcessor by lazy {
+        ImageProcessor(surface = cameraView, context = this@MainActivity, currentCamera = false)
     }
 
     private var rotationMatrix = Matrix()
@@ -172,7 +172,6 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-
     private val faceDetectorCallback = object : CameraCaptureSession.CaptureCallback() {
         override fun onCaptureCompleted(
             session: CameraCaptureSession,
@@ -186,7 +185,7 @@ class MainActivity : AppCompatActivity() {
             val displayRotation = this@MainActivity.windowManager?.defaultDisplay?.rotation
             val height = overlayView.height
             val width = overlayView.width
-            val activeArraySizeRect =
+//            val activeArraySizeRect =
                 getSpecificCharacteristics(CAMERA_CURRENT, CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE)!!
             val sensorOrientation =
                 getSpecificCharacteristics(CAMERA_CURRENT, CameraCharacteristics.SENSOR_ORIENTATION)!!
@@ -222,13 +221,23 @@ class MainActivity : AppCompatActivity() {
 
         val pictureShutter_button = findViewById<MovableFloatingActionButton>(R.id.pictureShutterButton)
         pictureShutter_button.bringToFront()
+
         pictureShutter_button.setOnClickListener {
+            shutterEffect.visibility = View.VISIBLE
             imageProcessor.onClick(it)
+            Handler().postDelayed({
+                shutterEffect.visibility = View.INVISIBLE
+            }, 100)
         }
+
+
         val cameraSwap_button = findViewById<ImageButton>(R.id.cameraswap_button)
         cameraSwap_button.setOnClickListener {
             swapCameras()
         }
+
+
+
         val cameraRecord_button = findViewById<Button>(R.id.shutter_button)
         cameraRecord_button.setOnClickListener {
             if (!isRecording) {
@@ -261,8 +270,8 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         // Hide the status bar.
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
-// Remember that you should never show the action bar if the
-// status bar is hidden, so hide that too if necessary.
+        // Remember that you should never show the action bar if the
+        // status bar is hidden, so hide that too if necessary.
         actionBar?.hide()
         startBackgroundThread()
 
@@ -317,7 +326,11 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        cameraDevice.createCaptureSession(mutableListOf(previewSurface, imgReaderSurface), captureCallback, backgroundHandler)
+        cameraDevice.createCaptureSession(
+            mutableListOf(previewSurface, imgReaderSurface),
+            captureCallback,
+            backgroundHandler
+        )
     }
 
     private fun recordingSession() {
@@ -405,7 +418,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun closeCamera() {
-        if (this::captureSession.isInitialized){
+        if (this::captureSession.isInitialized) {
             captureSession.close()
         }
 
