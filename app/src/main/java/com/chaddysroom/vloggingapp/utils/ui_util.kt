@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.view.View.OnTouchListener
 import android.support.design.widget.FloatingActionButton
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 
 
@@ -42,6 +43,11 @@ class MovableFloatingActionButton : FloatingActionButton, View.OnTouchListener {
 
 
         val layoutParams = view.getLayoutParams() as ViewGroup.MarginLayoutParams
+//        Log.i("FAB_top", layoutParams.topMargin.toString())
+//        Log.i("FAB_bottom", layoutParams.bottomMargin.toString())
+//        Log.i("FAB_left", layoutParams.leftMargin.toString())
+//        Log.i("FAB_right", layoutParams.rightMargin.toString())
+
 
         val action = motionEvent.action
         if (action == MotionEvent.ACTION_DOWN) {
@@ -62,6 +68,7 @@ class MovableFloatingActionButton : FloatingActionButton, View.OnTouchListener {
             val parentWidth = viewParent.getWidth()
             val parentHeight = viewParent.getHeight()
 
+
             var newX = motionEvent.rawX + dX
             newX = Math.max(
                 layoutParams.leftMargin.toFloat(),
@@ -73,6 +80,10 @@ class MovableFloatingActionButton : FloatingActionButton, View.OnTouchListener {
             ) // Don't allow the FAB past the right hand side of the parent
 
             var newY = motionEvent.rawY + dY
+            Log.i("height", parentHeight.toString())
+            Log.i("newY", newY.toString())
+            Log.i("FAB_left", layoutParams.leftMargin.toString())
+            Log.i("FAB_right", layoutParams.rightMargin.toString())
             newY = Math.max(layoutParams.topMargin.toFloat(), newY) // Don't allow the FAB past the top of the parent
             newY = Math.min(
                 (parentHeight - viewHeight - layoutParams.bottomMargin).toFloat(),

@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
+import android.support.constraint.ConstraintLayout
 import android.util.Log
 import android.util.SparseIntArray
 import android.view.Surface
@@ -18,6 +19,7 @@ import android.view.SurfaceHolder
 import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.Toast
 import com.chaddysroom.vloggingapp.R
 import com.chaddysroom.vloggingapp.utils.MovableFloatingActionButton
@@ -33,6 +35,19 @@ import com.chaddysroom.vloggingapp.utils.file_util.galleryAddPic
 import com.chaddysroom.vloggingapp.utils.img_util.ImageProcessor
 
 class MainActivity : AppCompatActivity() {
+    enum class AspectRatios(var dim: Int) {
+        Square(1440),
+        NineSixteenWidth(1440),
+        NineSixteenHeight(2560)
+    }
+
+    enum class AspectRatioID(var id: Int) {
+        Square(0),
+        NineSixteen(1)
+    }
+
+    private var CURRENT_ASPECT = AspectRatioID.NineSixteen.id
+
     private val MAX_PREVIEW_WIDTH = 1440
     private val MAX_PREVIEW_HEIGHT = 2560
 
@@ -92,7 +107,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val imageReader by lazy {
-        ImageReader.newInstance(MAX_PREVIEW_WIDTH, MAX_PREVIEW_HEIGHT, ImageFormat.YUV_420_888, 5)
+        //        ImageReader.newInstance(MAX_PREVIEW_WIDTH, MAX_PREVIEW_HEIGHT, ImageFormat.YUV_420_888, 5)
+        ImageReader.newInstance(
+            AspectRatios.NineSixteenWidth.dim,
+            AspectRatios.NineSixteenHeight.dim,
+            ImageFormat.YUV_420_888,
+            5
+        )
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -186,7 +207,7 @@ class MainActivity : AppCompatActivity() {
             val height = overlayView.height
             val width = overlayView.width
 //            val activeArraySizeRect =
-                getSpecificCharacteristics(CAMERA_CURRENT, CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE)!!
+            getSpecificCharacteristics(CAMERA_CURRENT, CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE)!!
             val sensorOrientation =
                 getSpecificCharacteristics(CAMERA_CURRENT, CameraCharacteristics.SENSOR_ORIENTATION)!!
             for (face in faces) { //!! is a null check operator. If it is null, it will throw null pointer exception
@@ -206,18 +227,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    ///////////////////////
-    // override functions//
-    ///////////////////////
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        startBackgroundThread()
-        cameraView.holder.addCallback(surfaceReadyCallback)
-        cameraView.holder.setFixedSize(MAX_PREVIEW_WIDTH, MAX_PREVIEW_HEIGHT)
-
-        overlayView.setZOrderMediaOverlay(true)
-        overlayView.holder.setFormat(PixelFormat.TRANSPARENT)
+    private fun initButtons() {
 
         val pictureShutter_button = findViewById<MovableFloatingActionButton>(R.id.pictureShutterButton)
         pictureShutter_button.bringToFront()
@@ -227,7 +237,7 @@ class MainActivity : AppCompatActivity() {
             imageProcessor.onClick(it)
             Handler().postDelayed({
                 shutterEffect.visibility = View.INVISIBLE
-            }, 100)
+            }, 70)
         }
 
 
@@ -237,12 +247,12 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-
         val cameraRecord_button = findViewById<Button>(R.id.shutter_button)
         cameraRecord_button.setOnClickListener {
             if (!isRecording) {
                 if (hasExStoragePermission() && hasAudioPermission()) { // Only start camera session once permission is granted
                     Log.d(TAG, "App has camera permission]")
+                    it.background = resources.getDrawable(R.drawable.bot_shutter_button_recording, null)
                     recordingSession()
                     Log.e(TAG, isRecording.toString())
                 } else {
@@ -256,10 +266,58 @@ class MainActivity : AppCompatActivity() {
                     )
                 }
             } else if (isRecording) {
+                it.background = resources.getDrawable(R.drawable.bot_shutter_button, null)
                 stopMediaRecorder()
             }
         }
 
+
+        val aspectRatio_button = findViewById<ImageButton>(R.id.aspectRatio)
+//        val ratio_band = findViewById<ImageView>(R.id.ratio_band)
+        val ratio_settings = findViewById<ConstraintLayout>(R.id.ratios)
+        aspectRatio_button.setOnClickListener {
+            if (ratio_settings.visibility == View.INVISIBLE) {
+                ratio_settings.visibility = View.VISIBLE
+            } else if (ratio_settings.visibility == View.VISIBLE) {
+                ratio_settings.visibility = View.INVISIBLE
+            }
+        }
+
+        val nine_by_sixteen_button = findViewById<ImageButton>(R.id.nine_by_sixteen_button)
+        val one_by_one_button = findViewById<ImageButton>(R.id.one_by_one_button)
+
+        nine_by_sixteen_button.setOnClickListener {
+            if (CURRENT_ASPECT == AspectRatioID.Square.id) {
+                cameraView.holder.setFixedSize(AspectRatios.NineSixteenWidth.dim, AspectRatios.NineSixteenHeight.dim)
+                CURRENT_ASPECT = AspectRatioID.NineSixteen.id
+            }
+        }
+
+        one_by_one_button.setOnClickListener {
+            if (CURRENT_ASPECT == AspectRatioID.NineSixteen.id) {
+                cameraView.holder.setFixedSize(AspectRatios.Square.dim, AspectRatios.Square.dim)
+                CURRENT_ASPECT = AspectRatioID.Square.id
+            }
+
+        }
+
+
+    }
+
+    ///////////////////////
+    // override functions//
+    ///////////////////////
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        startBackgroundThread()
+        cameraView.holder.addCallback(surfaceReadyCallback)
+        cameraView.holder.setFixedSize(AspectRatios.NineSixteenWidth.dim, AspectRatios.NineSixteenHeight.dim)
+        overlayView.setZOrderOnTop(true)
+        overlayView.setZOrderMediaOverlay(true)
+        cameraView.holder.setFormat(PixelFormat.TRANSPARENT)
+        overlayView.holder.setFormat(PixelFormat.TRANSPARENT)
+        initButtons()
 
         imageReader.setOnImageAvailableListener(imageProcessor, backgroundHandler)
         CAMERA_CURRENT = CAMERA_BACK // Initializing CURRENT_CAMERA
@@ -274,7 +332,6 @@ class MainActivity : AppCompatActivity() {
         // status bar is hidden, so hide that too if necessary.
         actionBar?.hide()
         startBackgroundThread()
-
     }
 
     override fun onPause() {
@@ -369,12 +426,11 @@ class MainActivity : AppCompatActivity() {
         }
         cameraDevice.createCaptureSession(
             mutableListOf(previewSurface, recordSurface, imgReaderSurface),
-//            mutableListOf(recordSurface),
             captureCallback,
             backgroundHandler
         )
         this@MainActivity.isRecording = true
-        Toast.makeText(this, "RECORDING VIDEO AND AUDIO", Toast.LENGTH_LONG).show()
+//        Toast.makeText(this, "RECORDING VIDEO AND AUDIO", Toast.LENGTH_LONG).show()
     }
     ////////////////////
     //Various sessions//
@@ -523,7 +579,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun stopMediaRecorder() {
-        Log.e("HEREEE", "heree")
         mediaRecorder.apply {
             try {
                 stop()
@@ -533,7 +588,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         isRecording = false
-        Toast.makeText(this, "STOPPED RECORDING VIDEO AND AUDIO", Toast.LENGTH_LONG).show()
+//        Toast.makeText(this, "STOPPED RECORDING VIDEO AND AUDIO", Toast.LENGTH_LONG).show()
 //        connectWithCamera(CAMERA_CURRENT)
         previewSession()
         galleryAddPic(currentVideoFile, this@MainActivity)
