@@ -4,7 +4,9 @@ import android.Manifest
 import android.content.Context
 import android.graphics.*
 import android.hardware.camera2.*
+import android.hardware.camera2.CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP
 import android.media.ImageReader
+import android.media.ImageWriter
 import android.media.MediaRecorder
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
@@ -70,9 +72,6 @@ class MainActivity : AppCompatActivity() {
         SurfaceViewDraw(overlayView, this@MainActivity)
     }
 
-    private val imageProcessor by lazy {
-        ImageProcessor(surface = cameraView, context = this@MainActivity, currentCamera = false)
-    }
 
     private var rotationMatrix = Matrix()
 
@@ -115,6 +114,18 @@ class MainActivity : AppCompatActivity() {
             5
         )
     }
+
+
+    private val imageProcessor by lazy {
+        ImageProcessor(
+            surface = cameraView,
+            context = this@MainActivity,
+            currentCamera = false
+        )
+    }
+
+
+    private lateinit var imageWriter : ImageWriter
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -180,6 +191,7 @@ class MainActivity : AppCompatActivity() {
         override fun surfaceChanged(p0: SurfaceHolder?, p1: Int, p2: Int, p3: Int) {}
         override fun surfaceDestroyed(p0: SurfaceHolder?) {}
         override fun surfaceCreated(p0: SurfaceHolder?) {
+            imageWriter = ImageWriter.newInstance(p0!!.surface, 1)
             launchCamera()
         }
     }
@@ -224,11 +236,11 @@ class MainActivity : AppCompatActivity() {
                 // Transformation
                 surfaceDrawer.drawBoundingBox(boundingBox = boundsF)
             }
+//            imageWriter.dequeueInputImage()
         }
     }
 
     private fun initButtons() {
-
         val pictureShutter_button = findViewById<MovableFloatingActionButton>(R.id.pictureShutterButton)
         pictureShutter_button.bringToFront()
 
@@ -311,11 +323,13 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         startBackgroundThread()
+        // Initialize surfaces
+        cameraView.holder.setFormat(35)
         cameraView.holder.addCallback(surfaceReadyCallback)
         cameraView.holder.setFixedSize(AspectRatios.NineSixteenWidth.dim, AspectRatios.NineSixteenHeight.dim)
         overlayView.setZOrderOnTop(true)
         overlayView.setZOrderMediaOverlay(true)
-        cameraView.holder.setFormat(PixelFormat.TRANSPARENT)
+//        cameraView.holder.setFormat(PixelFormat.TRANSPARENT)
         overlayView.holder.setFormat(PixelFormat.TRANSPARENT)
         initButtons()
 
@@ -356,9 +370,10 @@ class MainActivity : AppCompatActivity() {
     private fun previewSession() {
         val previewSurface = cameraView.holder.surface
         val imgReaderSurface = imageReader.surface
+        imageProcessor.imageWriter = imageWriter
 
         captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
-        captureRequestBuilder.addTarget(previewSurface)
+//        captureRequestBuilder.addTarget(previewSurface)
         captureRequestBuilder.addTarget(imgReaderSurface)
         val captureCallback = object : CameraCaptureSession.StateCallback() {
             override fun onConfigureFailed(session: CameraCaptureSession) {
@@ -384,9 +399,17 @@ class MainActivity : AppCompatActivity() {
             }
         }
         cameraDevice.createCaptureSession(
-            mutableListOf(previewSurface, imgReaderSurface),
+//            mutableListOf(previewSurface, imgReaderSurface),
+            mutableListOf(imgReaderSurface),
             captureCallback,
             backgroundHandler
+        )
+        Log.i(
+            "sizes",
+            getSpecificCharacteristics(
+                cameraId = CAMERA_CURRENT,
+                key = CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP
+            ).toString()
         )
     }
 

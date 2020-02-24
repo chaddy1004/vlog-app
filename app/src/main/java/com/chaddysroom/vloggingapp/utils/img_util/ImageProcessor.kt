@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.ImageFormat
 import android.media.Image
 import android.media.ImageReader
+import android.media.ImageWriter
 import android.os.Environment
 import android.util.Log
 import android.view.SurfaceView
@@ -52,6 +53,7 @@ open class ImageProcessor(surface: SurfaceView, context: Context, currentCamera:
     private var capture = false
     private val context = context
     var currentCamera = currentCamera
+    lateinit var imageWriter : ImageWriter
     override fun onClick(v: View?) {
         if (!capture) {
             capture = true
@@ -60,6 +62,7 @@ open class ImageProcessor(surface: SurfaceView, context: Context, currentCamera:
 
     override fun onImageAvailable(reader: ImageReader?) {
         val img = reader?.acquireLatestImage() ?: return
+
         val message = ""
         Log.i("IMAGEPROCESSOR", "Latest Image Received")
         Log.i("FORMAT", reader.imageFormat.toString())
@@ -72,7 +75,14 @@ open class ImageProcessor(surface: SurfaceView, context: Context, currentCamera:
             save2file(planes = img.planes, height = img.height, width = img.width)
             capture = false
         }
-        Log.e("RECEIVED", currentCamera.toString())
+        Log.i("ONIMG_h", img.height.toString())
+        Log.i("ONIMG_w", img.width.toString())
+        if (imageWriter != null){
+            Log.e("IMAGE", img.format.toString())
+            Log.e("IMAGE_WRITER", imageWriter.format.toString())
+            imageWriter.queueInputImage(img)
+        }
+//        Log.e("RECEIVED", currentCamera.toString())
         img.close()
     }
 
