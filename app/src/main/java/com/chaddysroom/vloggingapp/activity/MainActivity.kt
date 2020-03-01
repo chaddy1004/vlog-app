@@ -38,7 +38,7 @@ import com.chaddysroom.vloggingapp.utils.img_util.ImageProcessor
 
 class MainActivity : AppCompatActivity() {
     enum class AspectRatios(var dim: Int) {
-        Square(1440),
+        Square(1080),
         NineSixteenWidth(1440),
         NineSixteenHeight(2560)
     }
@@ -415,13 +415,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun recordingSession() {
         setupMediaRecorder()
-        val previewSurface = cameraView.holder.surface
+//        val previewSurface = cameraView.holder.surface
         val recordSurface = mediaRecorder.surface
         val imgReaderSurface = imageReader.surface
 
 
         captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
-        captureRequestBuilder.addTarget(previewSurface)
+//        captureRequestBuilder.addTarget(previewSurface)
         captureRequestBuilder.addTarget(recordSurface)
         captureRequestBuilder.addTarget(imgReaderSurface)
 
@@ -448,7 +448,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
         cameraDevice.createCaptureSession(
-            mutableListOf(previewSurface, recordSurface, imgReaderSurface),
+//            mutableListOf(previewSurface, recordSurface, imgReaderSurface),
+            mutableListOf(recordSurface, imgReaderSurface),
             captureCallback,
             backgroundHandler
         )
