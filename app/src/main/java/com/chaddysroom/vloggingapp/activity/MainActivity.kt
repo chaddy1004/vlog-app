@@ -2,9 +2,11 @@ package com.chaddysroom.vloggingapp.activity
 
 import android.Manifest
 import android.content.Context
+import android.content.IntentFilter
+import android.content.res.Resources
 import android.graphics.*
 import android.hardware.camera2.*
-import android.hardware.camera2.CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP
+import android.hardware.usb.UsbManager
 import android.media.ImageReader
 import android.media.ImageWriter
 import android.media.MediaRecorder
@@ -14,6 +16,10 @@ import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
 import android.support.constraint.ConstraintLayout
+import android.support.v4.app.Fragment
+import android.support.v4.app.FragmentActivity
+import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.util.SparseIntArray
 import android.view.Surface
@@ -21,9 +27,11 @@ import android.view.SurfaceHolder
 import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.Toast
 import com.chaddysroom.vloggingapp.R
+import com.chaddysroom.vloggingapp.adapters.BackPressInterface
+import com.chaddysroom.vloggingapp.adapters.EffectRecyclerViewAdapter
+import com.chaddysroom.vloggingapp.classes.Effect
 import com.chaddysroom.vloggingapp.utils.MovableFloatingActionButton
 import com.chaddysroom.vloggingapp.utils.draw_util.SurfaceViewDraw
 import kotlinx.android.synthetic.main.activity_main.*
@@ -35,10 +43,15 @@ import java.text.SimpleDateFormat
 import java.util.*
 import com.chaddysroom.vloggingapp.utils.file_util.galleryAddPic
 import com.chaddysroom.vloggingapp.utils.img_util.ImageProcessor
+import com.chaddysroom.vloggingapp.utils.usb_util.UsbService
+import com.chaddysroom.vloggingapp.fragment.EffectsFragment
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionListener, BackPressInterface {
+
+    private val usbService = UsbService(this@MainActivity)
+
     enum class AspectRatios(var dim: Int) {
-        Square(1080),
+        Square(Resources.getSystem().displayMetrics.widthPixels),
         NineSixteenWidth(1440),
         NineSixteenHeight(2560)
     }
@@ -52,6 +65,10 @@ class MainActivity : AppCompatActivity() {
 
     private val MAX_PREVIEW_WIDTH = 1440
     private val MAX_PREVIEW_HEIGHT = 2560
+
+
+//    (Effect(0),Effect(1),Effect(2),Effect(3),Effect(4),Effect(5))()
+
 
     // camera related initializations
     private lateinit var cameraDevice: CameraDevice
@@ -98,6 +115,15 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+
+    override fun onBackPressed() {
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            supportFragmentManager.popBackStackImmediate()
+        } else {
+            super.onBackPressed()
+        }
+    }
+
     // MediaRecorder Related Initialization
     private lateinit var currentVideoFile: File
     private var isRecording: Boolean = false
@@ -125,7 +151,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private lateinit var imageWriter : ImageWriter
+    private lateinit var imageWriter: ImageWriter
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -172,6 +198,7 @@ class MainActivity : AppCompatActivity() {
                 if (camera != null) {
                     cameraDevice = camera
                     previewSession()
+
                 }
             }
 
@@ -240,6 +267,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun registerIntentFilters() {
+        val intentFilter = IntentFilter();
+        intentFilter.apply {
+            addAction(UsbService.ACTION_USB_PERMISSION)
+            addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED)
+            addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED)
+            addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
+            addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
+        }
+        registerReceiver(usbService.GetUsbBroadcastReceiver(), intentFilter)
+    }
+
+
     private fun initButtons() {
         val pictureShutter_button = findViewById<MovableFloatingActionButton>(R.id.pictureShutterButton)
         pictureShutter_button.bringToFront()
@@ -283,9 +323,18 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        val effects_button = findViewById<ImageButton>(R.id.effects_button)
+        effects_button.setOnClickListener {
+            // Start Fragment
+            val effects_frag = EffectsFragment()
+            val ft = supportFragmentManager.beginTransaction()
+            ft.add(R.id.fragment_container, effects_frag)
+            ft.commit()
+            Log.i("FRAG", "fragment started?")
+        }
+
 
         val aspectRatio_button = findViewById<ImageButton>(R.id.aspectRatio)
-//        val ratio_band = findViewById<ImageView>(R.id.ratio_band)
         val ratio_settings = findViewById<ConstraintLayout>(R.id.ratios)
         aspectRatio_button.setOnClickListener {
             if (ratio_settings.visibility == View.INVISIBLE) {
@@ -310,10 +359,7 @@ class MainActivity : AppCompatActivity() {
                 cameraView.holder.setFixedSize(AspectRatios.Square.dim, AspectRatios.Square.dim)
                 CURRENT_ASPECT = AspectRatioID.Square.id
             }
-
         }
-
-
     }
 
     ///////////////////////
@@ -326,12 +372,14 @@ class MainActivity : AppCompatActivity() {
         // Initialize surfaces
         cameraView.holder.setFormat(35)
         cameraView.holder.addCallback(surfaceReadyCallback)
-        cameraView.holder.setFixedSize(AspectRatios.NineSixteenWidth.dim, AspectRatios.NineSixteenHeight.dim)
+//        cameraView.holder.setFixedSize(AspectRatios.NineSixteenWidth.dim, AspectRatios.NineSixteenHeight.dim)
         overlayView.setZOrderOnTop(true)
         overlayView.setZOrderMediaOverlay(true)
 //        cameraView.holder.setFormat(PixelFormat.TRANSPARENT)
         overlayView.holder.setFormat(PixelFormat.TRANSPARENT)
         initButtons()
+//        initUI()
+        registerIntentFilters()
 
         imageReader.setOnImageAvailableListener(imageProcessor, backgroundHandler)
         CAMERA_CURRENT = CAMERA_BACK // Initializing CURRENT_CAMERA
@@ -391,6 +439,19 @@ class MainActivity : AppCompatActivity() {
                         CaptureRequest.STATISTICS_FACE_DETECT_MODE,
                         CaptureRequest.STATISTICS_FACE_DETECT_MODE_FULL
                     )
+//                    val activeArraySize = getSpecificCharacteristics(CAMERA_CURRENT, CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE)
+//                    val cropW = activeArraySize!!.width() / 1;
+//                    val cropH = activeArraySize!!.height() / 1;
+//
+//                    // now we calculate the corners
+//                    val top = activeArraySize.centerY() -  (cropH / 2f).toInt();
+//                    val left = activeArraySize.centerX() - (cropW / 2f).toInt();
+//                    val right = activeArraySize.centerX() + (cropW / 2f).toInt();
+//                    val bottom = activeArraySize.centerY() + (cropH / 2f).toInt();
+//                    captureRequestBuilder.set(
+//                        CaptureRequest.SCALER_CROP_REGION,
+//                        Rect(left, top, right, bottom)
+//                    )
                     captureSession.setRepeatingRequest(
                         captureRequestBuilder.build(),
                         faceDetectorCallback,
@@ -409,6 +470,13 @@ class MainActivity : AppCompatActivity() {
             getSpecificCharacteristics(
                 cameraId = CAMERA_CURRENT,
                 key = CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP
+            ).toString()
+        )
+        Log.i(
+            "SENSOR_ARRAY",
+            getSpecificCharacteristics(
+                cameraId = CAMERA_CURRENT,
+                key = CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE
             ).toString()
         )
     }
@@ -454,7 +522,6 @@ class MainActivity : AppCompatActivity() {
             backgroundHandler
         )
         this@MainActivity.isRecording = true
-//        Toast.makeText(this, "RECORDING VIDEO AND AUDIO", Toast.LENGTH_LONG).show()
     }
     ////////////////////
     //Various sessions//
@@ -599,7 +666,6 @@ class MainActivity : AppCompatActivity() {
                 Log.e(TAG, e.toString())
             }
         }
-
     }
 
     private fun stopMediaRecorder() {

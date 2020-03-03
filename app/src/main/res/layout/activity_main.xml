@@ -8,6 +8,65 @@
         android:layout_height="match_parent"
         tools:context=".activity.MainActivity">
 
+    <android.support.constraint.ConstraintLayout android:layout_width="match_parent"
+                                                 app:layout_constraintTop_toBottomOf="@id/settingbar"
+                                                 android:layout_height = "match_parent"
+                                                 android:id="@+id/fragment_container"
+                                                 android:translationZ="10dp"
+    >
+
+    </android.support.constraint.ConstraintLayout>
+
+    <android.support.constraint.ConstraintLayout android:layout_width="match_parent"
+                                                 android:paddingTop="3dp"
+                                                 android:layout_height="match_parent"
+                                                 android:id="@+id/effects_layout"
+                                                 android:visibility="invisible"
+                                                 android:translationZ="5dp">
+
+        <android.widget.ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintLeft_toLeftOf="@+id/effect_list"
+                android:background="@color/colorBlackTransparent"
+        />
+
+        <android.widget.TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintRight_toLeftOf="@+id/video_effect"
+                app:layout_constraintBottom_toTopOf="@+id/effect_list"
+                android:text="Photo Effects"
+                android:id="@+id/photo_effect"
+                android:clickable="true"
+        />
+
+        <android.widget.TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintRight_toRightOf="@+id/effect_list"
+                app:layout_constraintBottom_toTopOf="@+id/effect_list"
+                android:text="Video Effects"
+                android:id="@+id/video_effect"
+                android:clickable="true"
+        />
+
+
+        <android.support.v7.widget.RecyclerView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                android:id="@+id/effect_list"
+        />
+
+
+    </android.support.constraint.ConstraintLayout>
+
 
     <android.support.constraint.ConstraintLayout
             android:id="@+id/settingbar"
@@ -19,7 +78,7 @@
 
         <ImageButton android:layout_width="wrap_content"
                      android:layout_height="wrap_content"
-                     android:id="@+id/menu"
+                     android:id="@+id/effects_button"
                      android:src="@drawable/top_ic_menu"
                      android:backgroundTint="@color/colorTransparent"
                      android:paddingTop="16dp"
@@ -77,7 +136,6 @@
                          android:background="@color/colorTransparent"
                          android:id="@+id/one_by_one_button"
                          android:src="@drawable/top_ratio_1by1"/>
-
 
 
         </android.support.constraint.ConstraintLayout>

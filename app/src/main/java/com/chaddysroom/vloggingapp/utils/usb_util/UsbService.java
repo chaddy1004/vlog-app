@@ -29,7 +29,7 @@ public class UsbService
     private UsbDeviceConnection mUsbConnection = null;
     private int mBaudRate = 9600;
 
-    private static final String ACTION_USB_PERMISSION = "com.mainactivity.USB_PERMISSION";
+    public static final String ACTION_USB_PERMISSION = "com.mainactivity.USB_PERMISSION";
     private static final int ARDUINO_USB_VID = 0x2341; // Java should be able to accept hex for int literals
     private static final int ARDUINO_USB_PID = 0x0001;
 
