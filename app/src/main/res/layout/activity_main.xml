@@ -10,8 +10,9 @@
 
     <android.support.constraint.ConstraintLayout android:layout_width="match_parent"
                                                  app:layout_constraintTop_toBottomOf="@id/settingbar"
-                                                 android:layout_height = "match_parent"
+                                                 android:layout_height="match_parent"
                                                  android:id="@+id/fragment_container"
+                                                 android:layout_marginTop="50dp"
                                                  android:translationZ="10dp"
     >
 

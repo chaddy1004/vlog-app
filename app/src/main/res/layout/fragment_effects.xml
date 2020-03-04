@@ -5,51 +5,71 @@
                                              android:layout_width="match_parent"
                                              android:layout_height="match_parent"
                                              android:translationZ="50dp">
+    <android.support.constraint.ConstraintLayout android:layout_width="0dp"
+                                                 android:layout_height="match_parent"
+                                                 app:layout_constraintStart_toStartOf="parent"
+                                                 app:layout_constraintEnd_toStartOf="@id/effects_view">
 
-    <android.widget.ImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintLeft_toLeftOf="@+id/effect_list"
-            android:background="@color/colorBlackTransparent"
-    />
+        <android.widget.ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                android:background="@color/colorBlackTransparent"
+                android:id="@+id/black_wall"
+        />
 
-    <android.widget.TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintRight_toLeftOf="@+id/video_effect"
-            app:layout_constraintBottom_toTopOf="@+id/effect_list"
-            android:paddingEnd="32dp"
-            android:textSize="24dp"
-            android:textStyle="bold"
-            android:text="Photo Effects"
-            android:id="@+id/photo_effect"
-            android:clickable="true"
-    />
+    </android.support.constraint.ConstraintLayout>
 
-    <android.widget.TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintRight_toRightOf="@+id/effect_list"
-            app:layout_constraintBottom_toTopOf="@+id/effect_list"
-            android:textSize="24dp"
-            android:textStyle="bold"
-            android:text="Video Effects"
-            android:id="@+id/video_effect"
-            android:clickable="true"
-    />
+    <android.support.constraint.ConstraintLayout android:layout_width="0dp"
+                                                 android:layout_height="match_parent"
+                                                 app:layout_constraintEnd_toEndOf="parent"
+                                                 android:id="@+id/effects_view"
+                                                 android:background="@color/colorPurpleTheme">
+        <android.support.constraint.ConstraintLayout android:layout_width="wrap_content"
+                                                     android:layout_height="wrap_content"
+                                                     app:layout_constraintBottom_toTopOf="@id/effect_list"
+                                                     app:layout_constraintRight_toRightOf="parent"
+                                                     android:id="@+id/tabs"
+        >
+
+            <android.widget.TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintRight_toLeftOf="@id/video_effect"
+                    android:paddingEnd="32dp"
+                    android:textSize="24dp"
+                    android:textStyle="bold"
+                    android:text="Photo Effects"
+                    android:id="@+id/photo_effect"
+                    android:clickable="true"
+                    app:layout_constraintHorizontal_bias="0.491"/>
+
+            <android.widget.TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:textSize="24dp"
+                    android:textStyle="bold"
+                    android:text="Video Effects"
+                    android:id="@+id/video_effect"
+                    android:clickable="true"
+            />
+        </android.support.constraint.ConstraintLayout>
 
 
-    <android.support.v7.widget.RecyclerView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            android:id="@+id/effect_list"
-    />
+        <android.support.v7.widget.RecyclerView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/tabs"
+                app:layout_constraintLeft_toLeftOf="@id/effects_view"
+                android:id="@+id/effect_list"
+        />
+    </android.support.constraint.ConstraintLayout>
 
 
 </android.support.constraint.ConstraintLayout>

@@ -5,6 +5,42 @@
     <string name="exStorage_request_rationale">Camera app requires external storage write permission</string>
     <string name="title_activity_splash">SplashActivity</string>
 
+    <string name="photo_effect_1">Photo Effect 1</string>
+    <string name="photo_effect_2">Photo Effect 2</string>
+    <string name="photo_effect_3">Photo Effect 3</string>
+    <string name="photo_effect_4">Photo Effect 4</string>
+    <string name="photo_effect_5">Photo Effect 5</string>
+    <string name="photo_effect_6">Photo Effect 6</string>
+    <string name="photo_effect_7">Photo Effect 7</string>
+
+    <string name="photo_effect_1_description">Photo Description 1</string>
+    <string name="photo_effect_2_description">Photo Description 2</string>
+    <string name="photo_effect_3_description">Photo Description 3</string>
+    <string name="photo_effect_4_description">Photo Description 4</string>
+    <string name="photo_effect_5_description">Photo Description 5</string>
+    <string name="photo_effect_6_description">Photo Description 6</string>
+    <string name="photo_effect_7_description">Photo Description 7</string>
+
+
+    <string name="video_effect_1">Video Effect 1</string>
+    <string name="video_effect_2">Video Effect 2</string>
+    <string name="video_effect_3">Video Effect 3</string>
+    <string name="video_effect_4">Video Effect 4</string>
+    <string name="video_effect_5">Video Effect 5</string>
+    <string name="video_effect_6">Video Effect 6</string>
+    <string name="video_effect_7">Video Effect 7</string>
+
+
+    <string name="video_effect_1_description">Video Description 1</string>
+    <string name="video_effect_2_description">Video Description 2</string>
+    <string name="video_effect_3_description">Video Description 3</string>
+    <string name="video_effect_4_description">Video Description 4</string>
+    <string name="video_effect_5_description">Video Description 5</string>
+    <string name="video_effect_6_description">Video Description 6</string>
+    <string name="video_effect_7_description">Video Description 7</string>
+
+
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

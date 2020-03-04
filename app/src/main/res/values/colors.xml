@@ -7,4 +7,5 @@
     <color name="colorBlack">#000000</color>
     <color name="colorBlackTransparent">#45000000</color>
     <color name="colorTransparent">#0000</color>
+    <color name="colorPurpleTheme">#88D4A8F7</color>
 </resources>

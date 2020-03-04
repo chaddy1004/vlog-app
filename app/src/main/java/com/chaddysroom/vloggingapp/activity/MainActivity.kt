@@ -326,11 +326,19 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
         val effects_button = findViewById<ImageButton>(R.id.effects_button)
         effects_button.setOnClickListener {
             // Start Fragment
-            val effects_frag = EffectsFragment()
-            val ft = supportFragmentManager.beginTransaction()
-            ft.add(R.id.fragment_container, effects_frag)
-            ft.commit()
-            Log.i("FRAG", "fragment started?")
+            if (supportFragmentManager.backStackEntryCount == 0){
+                val effects_frag = EffectsFragment()
+                val ft = supportFragmentManager.beginTransaction()
+                ft.replace(R.id.fragment_container, effects_frag)
+                ft.addToBackStack(null)
+                ft.commit()
+                Log.i("FRAG", "fragment started?")
+            }
+
+            else{
+                Toast.makeText(this@MainActivity, "FRAG ALREADY MADE", Toast.LENGTH_SHORT).show()
+            }
+
         }
 
 
@@ -370,7 +378,7 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
         setContentView(R.layout.activity_main)
         startBackgroundThread()
         // Initialize surfaces
-        cameraView.holder.setFormat(35)
+        cameraView.holder.setFormat(ImageFormat.NV21)
         cameraView.holder.addCallback(surfaceReadyCallback)
 //        cameraView.holder.setFixedSize(AspectRatios.NineSixteenWidth.dim, AspectRatios.NineSixteenHeight.dim)
         overlayView.setZOrderOnTop(true)

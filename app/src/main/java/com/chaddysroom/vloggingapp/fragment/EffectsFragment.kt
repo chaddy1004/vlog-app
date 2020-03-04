@@ -23,6 +23,8 @@ import android.graphics.BitmapFactory
 import android.graphics.Bitmap
 import android.util.Log
 import android.view.InflateException
+import android.widget.Toast
+import kotlinx.android.synthetic.*
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -39,11 +41,15 @@ private const val ARG_PARAM2 = "param2"
  * create an instance of this fragment.
  *
  */
-class EffectsFragment : Fragment() {
+class EffectsFragment : Fragment(), BackPressInterface {
     // TODO: Rename and change types of parameters
+    override fun onBackPressed() {
 
-    private var PHOTO_EFFECTS = LinkedList<Effect>()
-    private var VIDEO_EFFECTS = LinkedList<Effect>()
+        Toast.makeText(this.context, "back_pressed, fragment", Toast.LENGTH_SHORT).show()
+    }
+
+    private var PHOTO_EFFECTS = arrayOfNulls<Effect>(7)
+    private var VIDEO_EFFECTS = arrayOfNulls<Effect>(7)
     lateinit private var effectRecyclerView: RecyclerView
     lateinit private var effectRecyclerViewAdapter: EffectRecyclerViewAdapter
     private var isPhoto = true
@@ -51,50 +57,56 @@ class EffectsFragment : Fragment() {
     private fun initButtons(view: View?) {
         val photo_effect = view!!.findViewById<TextView>(R.id.photo_effect)
         photo_effect.setOnClickListener {
-            if (isPhoto) {
-                isPhoto = false
-                effectRecyclerViewAdapter.isPhoto = isPhoto
+            if (!isPhoto) {
+                isPhoto = true
+                effectRecyclerViewAdapter.effects
+                effectRecyclerViewAdapter.effects = PHOTO_EFFECTS
+                effectRecyclerViewAdapter.notifyDataSetChanged()
             }
         }
 
         val video_effect = view!!.findViewById<TextView>(R.id.video_effect)
-        photo_effect.setOnClickListener {
-            if (!isPhoto) {
-                isPhoto = true
-                effectRecyclerViewAdapter.isPhoto = isPhoto
+        video_effect.setOnClickListener {
+            if (isPhoto) {
+                isPhoto = false
+                effectRecyclerViewAdapter.effects = VIDEO_EFFECTS
+                effectRecyclerViewAdapter.notifyDataSetChanged()
             }
         }
 
 
     }
 
-    private fun initEffects(){
+    private fun initEffects() {
         val bm_camera = BitmapFactory.decodeResource(context!!.resources, R.drawable.logo_character)
-        val bm_video = BitmapFactory.decodeResource(context!!.resources, R.drawable.logo_character)
+        val bm_video = BitmapFactory.decodeResource(context!!.resources, R.drawable.logo_name)
+
         PHOTO_EFFECTS.apply {
-            add(Effect(0, bm_camera))
-            add(Effect(1, bm_camera))
-            add(Effect(2, bm_camera))
-            add(Effect(3, bm_camera))
-            add(Effect(4, bm_camera))
-            add(Effect(5, bm_camera))
-            add(Effect(6, bm_camera))
+            set(0, Effect(0, getString(R.string.photo_effect_1), getString(R.string.photo_effect_1_description), bm_camera))
+            set(1, Effect(0, getString(R.string.photo_effect_2), getString(R.string.photo_effect_2_description), bm_camera))
+            set(2, Effect(0, getString(R.string.photo_effect_3), getString(R.string.photo_effect_3_description), bm_camera))
+            set(3, Effect(0, getString(R.string.photo_effect_4), getString(R.string.photo_effect_4_description), bm_camera))
+            set(4, Effect(0, getString(R.string.photo_effect_5), getString(R.string.photo_effect_5_description), bm_camera))
+            set(5, Effect(0, getString(R.string.photo_effect_6), getString(R.string.photo_effect_6_description), bm_camera))
+            set(6, Effect(0, getString(R.string.photo_effect_7), getString(R.string.photo_effect_7_description), bm_camera))
         }
 
         VIDEO_EFFECTS.apply {
-            add(Effect(0, bm_video))
-            add(Effect(1, bm_video))
-            add(Effect(2, bm_video))
-            add(Effect(3, bm_video))
-            add(Effect(4, bm_video))
-            add(Effect(5, bm_video))
-            add(Effect(6, bm_video))
+            set(0, Effect(0, getString(R.string.video_effect_1), getString(R.string.video_effect_1_description), bm_video))
+            set(1, Effect(0, getString(R.string.video_effect_2), getString(R.string.video_effect_2_description), bm_video))
+            set(2, Effect(0, getString(R.string.video_effect_3), getString(R.string.video_effect_3_description), bm_video))
+            set(3, Effect(0, getString(R.string.video_effect_4), getString(R.string.video_effect_4_description), bm_video))
+            set(4, Effect(0, getString(R.string.video_effect_5), getString(R.string.video_effect_5_description), bm_video))
+            set(5, Effect(0, getString(R.string.video_effect_6), getString(R.string.video_effect_6_description), bm_video))
+            set(6, Effect(0, getString(R.string.video_effect_7), getString(R.string.video_effect_7_description), bm_video))
         }
     }
 
+
+
     private fun initUI(view: View?) {
         effectRecyclerView = view!!.findViewById(R.id.effect_list)
-        effectRecyclerViewAdapter = EffectRecyclerViewAdapter(PHOTO_EFFECTS, VIDEO_EFFECTS, this.context)
+        effectRecyclerViewAdapter = EffectRecyclerViewAdapter(PHOTO_EFFECTS, this.context)
         effectRecyclerView.adapter = effectRecyclerViewAdapter
         effectRecyclerView.layoutManager =
             LinearLayoutManager(activity!!.applicationContext, LinearLayoutManager.VERTICAL, false)
@@ -105,6 +117,8 @@ class EffectsFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        initEffects()
+
         arguments?.let {
             param2 = it.getString(ARG_PARAM2)
         }
@@ -115,9 +129,9 @@ class EffectsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this
-        initEffects()
         val rootView = inflater.inflate(R.layout.fragment_effects, container, false)
         initUI(view = rootView)
+        initButtons(view = rootView)
 
         Log.i("FRAG", "UI CREATEDR")
         return rootView
