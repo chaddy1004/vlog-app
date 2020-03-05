@@ -47,9 +47,8 @@ class EffectsFragment : Fragment(), BackPressInterface {
 
         Toast.makeText(this.context, "back_pressed, fragment", Toast.LENGTH_SHORT).show()
     }
-
-    private var PHOTO_EFFECTS = arrayOfNulls<Effect>(7)
-    private var VIDEO_EFFECTS = arrayOfNulls<Effect>(7)
+    private var PHOTO_EFFECTS = LinkedList<Effect?>()
+    private var VIDEO_EFFECTS = LinkedList<Effect?>()
     lateinit private var effectRecyclerView: RecyclerView
     lateinit private var effectRecyclerViewAdapter: EffectRecyclerViewAdapter
     private var isPhoto = true
@@ -60,9 +59,6 @@ class EffectsFragment : Fragment(), BackPressInterface {
             if (!isPhoto) {
                 isPhoto = true
                 effectRecyclerViewAdapter.setFilterType(PHOTO_EFFECTS, isPhoto)
-//                effectRecyclerViewAdapter.effects
-//                effectRecyclerViewAdapter.effects = PHOTO_EFFECTS
-//                effectRecyclerViewAdapter.notifyDataSetChanged()
             }
         }
 
@@ -71,36 +67,35 @@ class EffectsFragment : Fragment(), BackPressInterface {
             if (isPhoto) {
                 isPhoto = false
                 effectRecyclerViewAdapter.setFilterType(VIDEO_EFFECTS, isPhoto)
-//                effectRecyclerViewAdapter.effects = VIDEO_EFFECTS
-//                effectRecyclerViewAdapter.notifyDataSetChanged()
             }
         }
 
 
     }
 
+
     private fun initEffects() {
         val bm_camera = BitmapFactory.decodeResource(context!!.resources, R.drawable.logo_character)
         val bm_video = BitmapFactory.decodeResource(context!!.resources, R.drawable.logo_name)
 
         PHOTO_EFFECTS.apply {
-            set(0, Effect(0, getString(R.string.photo_effect_1), getString(R.string.photo_effect_1_description), bm_camera))
-            set(1, Effect(0, getString(R.string.photo_effect_2), getString(R.string.photo_effect_2_description), bm_camera))
-            set(2, Effect(0, getString(R.string.photo_effect_3), getString(R.string.photo_effect_3_description), bm_camera))
-            set(3, Effect(0, getString(R.string.photo_effect_4), getString(R.string.photo_effect_4_description), bm_camera))
-            set(4, Effect(0, getString(R.string.photo_effect_5), getString(R.string.photo_effect_5_description), bm_camera))
-            set(5, Effect(0, getString(R.string.photo_effect_6), getString(R.string.photo_effect_6_description), bm_camera))
-            set(6, Effect(0, getString(R.string.photo_effect_7), getString(R.string.photo_effect_7_description), bm_camera))
+            add(0, Effect(0, getString(R.string.photo_effect_1), getString(R.string.photo_effect_1_description), bm_camera))
+            add(1, Effect(0, getString(R.string.photo_effect_2), getString(R.string.photo_effect_2_description), bm_camera))
+            add(2, Effect(0, getString(R.string.photo_effect_3), getString(R.string.photo_effect_3_description), bm_camera))
+            add(3, Effect(0, getString(R.string.photo_effect_4), getString(R.string.photo_effect_4_description), bm_camera))
+            add(4, Effect(0, getString(R.string.photo_effect_5), getString(R.string.photo_effect_5_description), bm_camera))
+            add(5, Effect(0, getString(R.string.photo_effect_6), getString(R.string.photo_effect_6_description), bm_camera))
+            add(6, Effect(0, getString(R.string.photo_effect_7), getString(R.string.photo_effect_7_description), bm_camera))
         }
 
         VIDEO_EFFECTS.apply {
-            set(0, Effect(0, getString(R.string.video_effect_1), getString(R.string.video_effect_1_description), bm_video))
-            set(1, Effect(0, getString(R.string.video_effect_2), getString(R.string.video_effect_2_description), bm_video))
-            set(2, Effect(0, getString(R.string.video_effect_3), getString(R.string.video_effect_3_description), bm_video))
-            set(3, Effect(0, getString(R.string.video_effect_4), getString(R.string.video_effect_4_description), bm_video))
-            set(4, Effect(0, getString(R.string.video_effect_5), getString(R.string.video_effect_5_description), bm_video))
-            set(5, Effect(0, getString(R.string.video_effect_6), getString(R.string.video_effect_6_description), bm_video))
-            set(6, Effect(0, getString(R.string.video_effect_7), getString(R.string.video_effect_7_description), bm_video))
+            add(0, Effect(0, getString(R.string.video_effect_1), getString(R.string.video_effect_1_description), bm_video))
+            add(1, Effect(0, getString(R.string.video_effect_2), getString(R.string.video_effect_2_description), bm_video))
+            add(2, Effect(0, getString(R.string.video_effect_3), getString(R.string.video_effect_3_description), bm_video))
+            add(3, Effect(0, getString(R.string.video_effect_4), getString(R.string.video_effect_4_description), bm_video))
+            add(4, Effect(0, getString(R.string.video_effect_5), getString(R.string.video_effect_5_description), bm_video))
+            add(5, Effect(0, getString(R.string.video_effect_6), getString(R.string.video_effect_6_description), bm_video))
+//            set(6, Effect(0, getString(R.string.video_effect_6), getString(R.string.video_effect_6_description), bm_video))
         }
     }
 
@@ -108,7 +103,7 @@ class EffectsFragment : Fragment(), BackPressInterface {
 
     private fun initUI(view: View?) {
         effectRecyclerView = view!!.findViewById(R.id.effect_list)
-        effectRecyclerViewAdapter = EffectRecyclerViewAdapter(PHOTO_EFFECTS, this.context)
+        effectRecyclerViewAdapter = EffectRecyclerViewAdapter(PHOTO_EFFECTS, this.context, effectRecyclerView)
         effectRecyclerView.adapter = effectRecyclerViewAdapter
         effectRecyclerView.layoutManager =
             LinearLayoutManager(activity!!.applicationContext, LinearLayoutManager.VERTICAL, false)
