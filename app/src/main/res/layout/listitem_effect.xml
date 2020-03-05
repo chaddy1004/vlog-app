@@ -20,7 +20,6 @@
             app:layout_constraintStart_toEndOf="@id/effect_thumbnail"
             app:layout_constraintTop_toTopOf="@+id/effect_thumbnail"
             android:id="@+id/effect_name"
-            android:text="EFFECT_i: TITLE"
     />
 
     <android.widget.TextView
@@ -30,6 +29,5 @@
             app:layout_constraintTop_toBottomOf="@+id/effect_name"
             app:layout_constraintLeft_toRightOf="@+id/effect_thumbnail"
             android:id="@+id/effect_description"
-            android:text="EFFECT_i: DESCRIPTION"
     />
 </android.support.constraint.ConstraintLayout>

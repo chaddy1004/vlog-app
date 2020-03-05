@@ -50,6 +50,9 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
 
     private val usbService = UsbService(this@MainActivity)
 
+    var EFFECT_STATE = 0
+    var isPhoto = true
+
     enum class AspectRatios(var dim: Int) {
         Square(Resources.getSystem().displayMetrics.widthPixels),
         NineSixteenWidth(1440),

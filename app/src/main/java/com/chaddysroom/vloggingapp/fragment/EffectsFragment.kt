@@ -103,7 +103,7 @@ class EffectsFragment : Fragment(), BackPressInterface {
 
     private fun initUI(view: View?) {
         effectRecyclerView = view!!.findViewById(R.id.effect_list)
-        effectRecyclerViewAdapter = EffectRecyclerViewAdapter(PHOTO_EFFECTS, this.context, effectRecyclerView)
+        effectRecyclerViewAdapter = EffectRecyclerViewAdapter(PHOTO_EFFECTS, this.context, effectRecyclerView, this)
         effectRecyclerView.adapter = effectRecyclerViewAdapter
         effectRecyclerView.layoutManager =
             LinearLayoutManager(activity!!.applicationContext, LinearLayoutManager.VERTICAL, false)
