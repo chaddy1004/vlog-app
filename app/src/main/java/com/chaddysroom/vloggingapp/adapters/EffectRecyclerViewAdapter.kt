@@ -23,10 +23,36 @@ class EffectRecyclerViewAdapter(
     var effects: Array<Effect?>,
     private val mContext: Context?
 ) : RecyclerView.Adapter<EffectRecyclerViewAdapter.ViewHolder>() {
+    var isPhoto = true
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.listitem_effect, parent, false)
-        return ViewHolder(view)
+        if (viewType == 1){
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.listitem_effect, parent, false)
+            return ViewHolder(view)
+        }
+        else{
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.listitem_effect_video, parent, false)
+            return ViewHolder(view)
+        }
+
+    }
+
+    fun setFilterType(effects: Array<Effect?>, isPhoto: Boolean){
+        this.effects = effects
+        this.setState(isPhoto)
+    }
+
+    private fun setState(isPhoto: Boolean){
+        this.isPhoto = isPhoto
+        notifyDataSetChanged()
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        if(isPhoto)
+            return 1
+        else
+            return 0
+
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {

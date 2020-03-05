@@ -59,9 +59,10 @@ class EffectsFragment : Fragment(), BackPressInterface {
         photo_effect.setOnClickListener {
             if (!isPhoto) {
                 isPhoto = true
-                effectRecyclerViewAdapter.effects
-                effectRecyclerViewAdapter.effects = PHOTO_EFFECTS
-                effectRecyclerViewAdapter.notifyDataSetChanged()
+                effectRecyclerViewAdapter.setFilterType(PHOTO_EFFECTS, isPhoto)
+//                effectRecyclerViewAdapter.effects
+//                effectRecyclerViewAdapter.effects = PHOTO_EFFECTS
+//                effectRecyclerViewAdapter.notifyDataSetChanged()
             }
         }
 
@@ -69,8 +70,9 @@ class EffectsFragment : Fragment(), BackPressInterface {
         video_effect.setOnClickListener {
             if (isPhoto) {
                 isPhoto = false
-                effectRecyclerViewAdapter.effects = VIDEO_EFFECTS
-                effectRecyclerViewAdapter.notifyDataSetChanged()
+                effectRecyclerViewAdapter.setFilterType(VIDEO_EFFECTS, isPhoto)
+//                effectRecyclerViewAdapter.effects = VIDEO_EFFECTS
+//                effectRecyclerViewAdapter.notifyDataSetChanged()
             }
         }
 
