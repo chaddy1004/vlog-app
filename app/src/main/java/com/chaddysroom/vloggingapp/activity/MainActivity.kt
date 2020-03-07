@@ -2,6 +2,7 @@ package com.chaddysroom.vloggingapp.activity
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Resources
 import android.graphics.*
@@ -27,7 +28,10 @@ import android.view.SurfaceHolder
 import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.Toast
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.chaddysroom.vloggingapp.R
 import com.chaddysroom.vloggingapp.adapters.BackPressInterface
 import com.chaddysroom.vloggingapp.adapters.EffectRecyclerViewAdapter
@@ -51,7 +55,9 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
     private val usbService = UsbService(this@MainActivity)
 
     var EFFECT_STATE = 0
-    var isPhoto = true
+    private var isPhoto = true
+
+    private var latestFile = "init"
 
     enum class AspectRatios(var dim: Int) {
         Square(Resources.getSystem().displayMetrics.widthPixels),
@@ -68,9 +74,6 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
 
     private val MAX_PREVIEW_WIDTH = 1440
     private val MAX_PREVIEW_HEIGHT = 2560
-
-
-//    (Effect(0),Effect(1),Effect(2),Effect(3),Effect(4),Effect(5))()
 
 
     // camera related initializations
@@ -248,7 +251,6 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
             val displayRotation = this@MainActivity.windowManager?.defaultDisplay?.rotation
             val height = overlayView.height
             val width = overlayView.width
-//            val activeArraySizeRect =
             getSpecificCharacteristics(CAMERA_CURRENT, CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE)!!
             val sensorOrientation =
                 getSpecificCharacteristics(CAMERA_CURRENT, CameraCharacteristics.SENSOR_ORIENTATION)!!
@@ -266,7 +268,6 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
                 // Transformation
                 surfaceDrawer.drawBoundingBox(boundingBox = boundsF)
             }
-//            imageWriter.dequeueInputImage()
         }
     }
 
@@ -292,7 +293,7 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
             imageProcessor.onClick(it)
             Handler().postDelayed({
                 shutterEffect.visibility = View.INVISIBLE
-            }, 70)
+            }, 50)
         }
 
 
@@ -304,41 +305,76 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
 
         val cameraRecord_button = findViewById<Button>(R.id.shutter_button)
         cameraRecord_button.setOnClickListener {
-            if (!isRecording) {
-                if (hasExStoragePermission() && hasAudioPermission()) { // Only start camera session once permission is granted
-                    Log.d(TAG, "App has camera permission]")
-                    it.background = resources.getDrawable(R.drawable.bot_shutter_button_recording, null)
-                    recordingSession()
-                    Log.e(TAG, isRecording.toString())
-                } else {
-                    val permissions =
-                        arrayOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    EasyPermissions.requestPermissions(
-                        this,
-                        getString(R.string.audio_request_rationale),
-                        REQUEST_AUDIO_AND_STORAGE_PERMISSION,
-                        *permissions
-                    )
+            if (isPhoto) {
+                
+                shutterEffect.visibility = View.VISIBLE
+                imageProcessor.onClick(it)
+                while(!imageProcessor.isinitialized()) {
+
                 }
-            } else if (isRecording) {
-                it.background = resources.getDrawable(R.drawable.bot_shutter_button, null)
-                stopMediaRecorder()
+
+                while (!imageProcessor.isChanged()){
+
+                }
+                Handler().postDelayed({
+                    shutterEffect.visibility = View.INVISIBLE
+                }, 70)
+                val imageThumbnail = findViewById<ImageView>(R.id.imageThumbnail)
+                val options = RequestOptions()
+
+                // For some reason the latest file are not in sync. Therefore I had to do this
+                // I know that this is bad code... but camera2 api sux
+                while (latestFile == imageProcessor.getLatestFile()){
+
+                }
+                latestFile = imageProcessor.getLatestFile()
+                Glide.with(this)
+                    .load(latestFile)
+                    .apply(options.fitCenter())
+                    .apply(options.circleCrop())
+                    .into(imageThumbnail)
+
+                val intent = Intent(this, PictureViewActivity::class.java).apply {
+                    putExtra("uriToFile", latestFile)
+                }
+                startActivity(intent)
+
+            } else {
+                if (!isRecording) {
+                    if (hasExStoragePermission() && hasAudioPermission()) { // Only start camera session once permission is granted
+
+                        Log.d(TAG, "App has camera permission]")
+                        it.background = resources.getDrawable(R.drawable.bot_shutter_button_recording, null)
+                        recordingSession()
+                        Log.e(TAG, isRecording.toString())
+                    } else {
+                        val permissions =
+                            arrayOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        EasyPermissions.requestPermissions(
+                            this,
+                            getString(R.string.audio_request_rationale),
+                            REQUEST_AUDIO_AND_STORAGE_PERMISSION,
+                            *permissions
+                        )
+                    }
+                } else if (isRecording) {
+                    it.background = resources.getDrawable(R.drawable.bot_shutter_button, null)
+                    stopMediaRecorder()
+                }
             }
         }
 
         val effects_button = findViewById<ImageButton>(R.id.effects_button)
         effects_button.setOnClickListener {
             // Start Fragment
-            if (supportFragmentManager.backStackEntryCount == 0){
+            if (supportFragmentManager.backStackEntryCount == 0) {
                 val effects_frag = EffectsFragment()
                 val ft = supportFragmentManager.beginTransaction()
                 ft.replace(R.id.fragment_container, effects_frag)
                 ft.addToBackStack(null)
                 ft.commit()
                 Log.i("FRAG", "fragment started?")
-            }
-
-            else{
+            } else {
                 Toast.makeText(this@MainActivity, "FRAG ALREADY MADE", Toast.LENGTH_SHORT).show()
             }
 
@@ -390,10 +426,12 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
         overlayView.holder.setFormat(PixelFormat.TRANSPARENT)
         initButtons()
 //        initUI()
+
+//        imageProcessor.onClick(findViewById<Button>(R.id.shutter_button)) // This is needed ot initiaze the filename. This is cuz i cant to async programming yet ㅠㅠ
         registerIntentFilters()
 
         imageReader.setOnImageAvailableListener(imageProcessor, backgroundHandler)
-        CAMERA_CURRENT = CAMERA_BACK // Initializing CURRENT_CAMERA
+        CAMERA_CURRENT = CAMERA_FRONT // Initializing CURRENT_CAMERA
         imageProcessor.currentCamera = (CAMERA_CURRENT == CAMERA_FRONT)
     }
 
@@ -534,6 +572,8 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
         )
         this@MainActivity.isRecording = true
     }
+
+
     ////////////////////
     //Various sessions//
     ////////////////////
@@ -545,7 +585,7 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
     private fun launchCamera() {
         if (hasCameraPermission()) { // Only start camera session once permission is granted
             Log.d(TAG, "App has camera permission]")
-            connectWithCamera(CAMERA_BACK)
+            connectWithCamera(CAMERA_CURRENT)
         } else {
             EasyPermissions.requestPermissions(
                 this,
@@ -553,7 +593,7 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
                 REQUEST_CAMERA_PERMISSION,
                 Manifest.permission.CAMERA
             )
-            connectWithCamera(CAMERA_BACK)
+            connectWithCamera(CAMERA_CURRENT)
         }
     }
 
@@ -695,6 +735,15 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
         galleryAddPic(currentVideoFile, this@MainActivity)
     }
 
+    fun setState(state: Boolean) {
+        this.isPhoto = state
+        val shutter_button = findViewById<Button>(R.id.shutter_button)
+        if (isPhoto) {
+            shutter_button.background = resources.getDrawable(R.drawable.shutter_button_picture)
+        } else {
+            shutter_button.background = resources.getDrawable(R.drawable.bot_shutter_button)
+        }
+    }
 }
 
 

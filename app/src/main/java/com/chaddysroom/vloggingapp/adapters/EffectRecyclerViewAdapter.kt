@@ -41,7 +41,7 @@ class EffectRecyclerViewAdapter(
                 Toast.makeText(this.mContext, effects.get(position)!!.name, Toast.LENGTH_SHORT).show()
                 val mainActivity = mFragment.activity as MainActivity
                 mainActivity.EFFECT_STATE = position
-                mainActivity.isPhoto = true
+                mainActivity.setState(true) // sets "isPhoto" state
                 mainActivity.onBackPressed()
             }
             return ViewHolder(view)
@@ -52,7 +52,7 @@ class EffectRecyclerViewAdapter(
                 Toast.makeText(this.mContext, effects.get(position)!!.name, Toast.LENGTH_SHORT).show()
                 val mainActivity = mFragment.activity as MainActivity
                 mainActivity.EFFECT_STATE = position
-                mainActivity.isPhoto = false
+                mainActivity.setState(false) // sets "isPhoto" state to false
                 mainActivity.onBackPressed()
             }
             return ViewHolder(view)

@@ -6,6 +6,7 @@ import android.media.Image
 import android.media.ImageReader
 import android.media.ImageWriter
 import android.os.Environment
+import android.os.Handler
 import android.util.Log
 import android.view.SurfaceView
 import android.view.View
@@ -18,6 +19,8 @@ import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 import java.util.*
 import com.chaddysroom.vloggingapp.utils.file_util.galleryAddPic
+import kotlinx.android.synthetic.main.activity_main.*
+import java.lang.IllegalStateException
 
 open class ImageProcessor(surface: SurfaceView, context: Context, currentCamera: Boolean) :
     ImageReader.OnImageAvailableListener, View.OnClickListener {
@@ -25,7 +28,7 @@ open class ImageProcessor(surface: SurfaceView, context: Context, currentCamera:
         System.loadLibrary("native-img_processing")
     }
 
-    open fun onCaptureCallback(){
+    open fun onCaptureCallback() {
 
     }
 
@@ -53,31 +56,57 @@ open class ImageProcessor(surface: SurfaceView, context: Context, currentCamera:
     private var capture = false
     private val context = context
     var currentCamera = currentCamera
-    lateinit var imageWriter : ImageWriter
+    lateinit var imageWriter: ImageWriter
+    private lateinit var latestFile : String
+    private var lastFile = "LASTFILE"
+
+    fun getLatestFile(): String {
+        return latestFile
+    }
+
     override fun onClick(v: View?) {
         if (!capture) {
             capture = true
         }
     }
 
+    fun isinitialized(): Boolean{
+        return this::latestFile.isInitialized
+    }
+
+    fun isChanged():Boolean{
+        Log.i("isChanged_last", lastFile.toString())
+        Log.i("isChanged_latest", latestFile.toString())
+        return lastFile != latestFile
+    }
+
     override fun onImageAvailable(reader: ImageReader?) {
         val img = reader?.acquireLatestImage() ?: return
 
-        val message = ""
-        Log.i("IMAGEPROCESSOR", "Latest Image Received")
-        Log.i("FORMAT", reader.imageFormat.toString())
-//        Log.i("HEIGHT", img.height.toString())
-//        Log.i("WIDTH", img.width.toString())
-        if (img.format != ImageFormat.YUV_420_888) {
-            Log.e("ImageProcessor", "NOT_YUV_420_888")
-        }
+//        val message = ""
+//        Log.i("IMAGEPROCESSOR", "Latest Image Received")
+//        Log.i("FORMAT", reader.imageFormat.toString())
+////        Log.i("HEIGHT", img.height.toString())
+////        Log.i("WIDTH", img.width.toString())
+//        if (img.format != ImageFormat.YUV_420_888) {
+//            Log.e("ImageProcessor", "NOT_YUV_420_888")
+//        }
         if (capture) {
-            save2file(planes = img.planes, height = img.height, width = img.width)
+
+            if (this::latestFile.isInitialized){
+
+                lastFile = latestFile
+                Log.e("INSIDE CAPTURE_last", lastFile)
+                Log.e("INSIDE CAPTURE_lastest", latestFile)
+//                Log.i("isChanged_last", lastFile.toString())
+            }
+            latestFile = save2file(planes = img.planes, height = img.height, width = img.width)
+            Log.e("INSIDE CAPTURE_lastest_out", latestFile)
             capture = false
         }
         Log.i("ONIMG_h", img.height.toString())
         Log.i("ONIMG_w", img.width.toString())
-        if (imageWriter != null){
+        if (imageWriter != null) {
             Log.e("IMAGE", img.format.toString())
             Log.e("IMAGE_WRITER", imageWriter.format.toString())
             imageWriter.queueInputImage(img)
@@ -100,7 +129,7 @@ open class ImageProcessor(surface: SurfaceView, context: Context, currentCamera:
         YUV2RGB(width, height, plane0.buffer, mat.nativeObjAddr, currentCamera)
         val hello = Imgcodecs.imwrite(file.toString(), mat)
         galleryAddPic(file, context = context)
-        return "DoneProcessing with $result $hello"
+        return file.toString()
     }
 
     private fun render2surface(planes: Array<Image.Plane>, height: Int, width: Int): String {
