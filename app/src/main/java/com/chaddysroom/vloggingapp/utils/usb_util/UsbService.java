@@ -62,7 +62,7 @@ public class UsbService
         @Override
         public void onReceive(Context context, Intent intent)
         {
-            Toast.makeText(context, "Received USB broadcast", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(context, "Received USB broadcast", Toast.LENGTH_SHORT).show();
 
             if(intent.getAction().equals(ACTION_USB_PERMISSION))
             {
