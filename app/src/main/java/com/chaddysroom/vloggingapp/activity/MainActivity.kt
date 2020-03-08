@@ -54,7 +54,7 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
 
     private val usbService = UsbService(this@MainActivity)
 
-    var EFFECT_STATE = 0
+    private var EFFECT_STATE = 0
     private var isPhoto = true
 
     private var latestFile = "init"
@@ -407,6 +407,17 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
                 CURRENT_ASPECT = AspectRatioID.Square.id
             }
         }
+
+        val calibratonButton = findViewById<Button>(R.id.setButton)
+        calibratonButton.setOnClickListener {
+            //Calibrate
+
+            val calibrationMenu = findViewById<ConstraintLayout>(R.id.calibration_window)
+            if (calibrationMenu.visibility == View.VISIBLE){
+                calibrationMenu.visibility = View.INVISIBLE
+            }
+
+        }
     }
 
     ///////////////////////
@@ -744,6 +755,18 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
             shutter_button.background = resources.getDrawable(R.drawable.bot_shutter_button)
         }
     }
+
+    fun setEffectState(state: Int){
+        this.EFFECT_STATE = state
+        Log.i("EFFECT_STATE", state.toString())
+        Log.i("STATE", this.isPhoto.toString())
+        if (this.EFFECT_STATE == 0 && !this.isPhoto){
+            val calibrationMenu = findViewById<ConstraintLayout>(R.id.calibration_window)
+            calibrationMenu.visibility = View.VISIBLE
+            calibrationMenu.bringToFront()
+        }
+    }
+
 }
 
 
