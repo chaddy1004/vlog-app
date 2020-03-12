@@ -17,25 +17,16 @@ import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
 import android.support.constraint.ConstraintLayout
-import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentActivity
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.util.SparseIntArray
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.View
-import android.widget.Button
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.Toast
+import android.widget.*
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.chaddysroom.vloggingapp.R
 import com.chaddysroom.vloggingapp.adapters.BackPressInterface
-import com.chaddysroom.vloggingapp.adapters.EffectRecyclerViewAdapter
-import com.chaddysroom.vloggingapp.classes.Effect
 import com.chaddysroom.vloggingapp.utils.MovableFloatingActionButton
 import com.chaddysroom.vloggingapp.utils.draw_util.SurfaceViewDraw
 import kotlinx.android.synthetic.main.activity_main.*
@@ -49,13 +40,18 @@ import com.chaddysroom.vloggingapp.utils.file_util.galleryAddPic
 import com.chaddysroom.vloggingapp.utils.img_util.ImageProcessor
 import com.chaddysroom.vloggingapp.utils.usb_util.UsbService
 import com.chaddysroom.vloggingapp.fragment.EffectsFragment
+import com.chaddysroom.vloggingapp.utils.BPMManager
+import java.nio.ByteBuffer
+
 
 class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionListener, BackPressInterface {
 
     private val usbService = UsbService(this@MainActivity)
+    private val bpmManager = BPMManager()
+    private var startTime = 0L
 
     private var EFFECT_STATE = 0
-    private var isPhoto = true
+    private var isPhoto = false
 
     private var latestFile = "init"
 
@@ -306,14 +302,14 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
         val cameraRecord_button = findViewById<Button>(R.id.shutter_button)
         cameraRecord_button.setOnClickListener {
             if (isPhoto) {
-                
+
                 shutterEffect.visibility = View.VISIBLE
                 imageProcessor.onClick(it)
-                while(!imageProcessor.isinitialized()) {
+                while (!imageProcessor.isinitialized()) {
 
                 }
 
-                while (!imageProcessor.isChanged()){
+                while (!imageProcessor.isChanged()) {
 
                 }
                 Handler().postDelayed({
@@ -324,7 +320,7 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
 
                 // For some reason the latest file are not in sync. Therefore I had to do this
                 // I know that this is bad code... but camera2 api sux
-                while (latestFile == imageProcessor.getLatestFile()){
+                while (latestFile == imageProcessor.getLatestFile()) {
 
                 }
                 latestFile = imageProcessor.getLatestFile()
@@ -411,12 +407,101 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
         val calibratonButton = findViewById<Button>(R.id.setButton)
         calibratonButton.setOnClickListener {
             //Calibrate
+            var byteBuffer = ByteBuffer.allocate(3)
+            byteBuffer.put(' '.toByte())
+            byteBuffer.put(0.toByte())
+            byteBuffer.put('s'.toByte())
+            var dummy = usbService.sendData(byteBuffer.array())
+            Toast.makeText(this@MainActivity, dummy.toString(), Toast.LENGTH_SHORT).show()
 
             val calibrationMenu = findViewById<ConstraintLayout>(R.id.calibration_window)
-            if (calibrationMenu.visibility == View.VISIBLE){
+            if (calibrationMenu.visibility == View.VISIBLE) {
                 calibrationMenu.visibility = View.INVISIBLE
             }
+            Toast.makeText(this@MainActivity, dummy.toString(), Toast.LENGTH_SHORT).show()
+        }
 
+        val cancelButton = findViewById<Button>(R.id.cancelButton)
+        cancelButton.setOnClickListener {
+            //Calibrate
+            var byteBuffer = ByteBuffer.allocate(3)
+            byteBuffer.put(' '.toByte())
+            byteBuffer.put(0.toByte())
+            byteBuffer.put('c'.toByte())
+            var dummy = usbService.sendData(byteBuffer.array())
+            Toast.makeText(this@MainActivity, dummy.toString(), Toast.LENGTH_SHORT).show()
+
+            val calibrationMenu = findViewById<ConstraintLayout>(R.id.calibration_window)
+            if (calibrationMenu.visibility == View.VISIBLE) {
+                calibrationMenu.visibility = View.INVISIBLE
+            }
+            Toast.makeText(this@MainActivity, dummy.toString(), Toast.LENGTH_SHORT).show()
+        }
+
+        val sendButton = findViewById<Button>(R.id.send_button)
+        val bpmDisplay = findViewById<TextView>(R.id.bpm_display)
+        val resetButton = findViewById<Button>(R.id.reset_button)
+
+
+        val bpmButton = findViewById<Button>(R.id.tap_button)
+        bpmButton.setOnClickListener {
+            //Calibrate
+            Log.i("BPM_MANAGER", bpmManager.getIteration().toString())
+            if (bpmManager.getIteration() == 1) {
+                startTime = System.currentTimeMillis()
+//                Log.i("BPM", "1")
+                bpmManager.iterateCounter()
+            } else if (bpmManager.getIteration() == 4) {
+                val currentTime = System.currentTimeMillis()
+                bpmManager.addTime(currentTime - startTime)
+                bpmManager.calculateBPM()
+                bpmDisplay.text = (60000/bpmManager.getBPM()).toString()
+                // Send bpm
+                sendButton.isEnabled = true
+                resetButton.isEnabled = true
+
+
+
+            } else {
+                val currentTime = System.currentTimeMillis()
+                bpmManager.addTime(currentTime - startTime)
+                startTime = System.currentTimeMillis()
+                Log.i("BPM", "ELSE")
+                bpmManager.iterateCounter()
+            }
+        }
+
+
+        sendButton.setOnClickListener {
+            val bpmMenu = findViewById<ConstraintLayout>(R.id.bpm_window)
+            if (bpmMenu.visibility == View.VISIBLE) {
+                bpmMenu.visibility = View.INVISIBLE
+            }
+            var byteBuffer = ByteBuffer.allocate(3)
+            byteBuffer.put(' '.toByte())
+            var intBPM = 0
+            if (bpmManager.getBPM() < (255*2)){
+                intBPM = (bpmManager.getBPM()/2).toInt()
+            }
+            else{
+                intBPM = (bpmManager.getBPM()/4).toInt()
+            }
+            byteBuffer.put('p'.toByte())
+            byteBuffer.put(intBPM.toByte())
+            var dummy = usbService.sendData(byteBuffer.array())
+            Toast.makeText(this@MainActivity, dummy.toString(), Toast.LENGTH_SHORT).show()
+
+//                Toast.makeText(this@MainActivity, bpmManager.getBPM().toString(), Toast.LENGTH_SHORT).show()
+            bpmManager.clear()
+            it.isEnabled = false
+            resetButton.isEnabled = false
+        }
+
+        resetButton.setOnClickListener {
+            bpmManager.clear()
+            bpmDisplay.text = "0"
+            it.isEnabled = false
+            sendButton.isEnabled = false
         }
     }
 
@@ -447,7 +532,7 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
     }
 
     override fun onResume() {
-        Toast.makeText(this@MainActivity, "onResume", Toast.LENGTH_LONG).show()
+//        Toast.makeText(this@MainActivity, "onResume", Toast.LENGTH_LONG).show()
         super.onResume()
         // Hide the status bar.
 //        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
@@ -458,7 +543,7 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
     }
 
     override fun onPause() {
-        Toast.makeText(this@MainActivity, "onPause", Toast.LENGTH_LONG).show()
+//        Toast.makeText(this@MainActivity, "onPause", Toast.LENGTH_LONG).show()
 //        closeCamera()
         stopBackgroundThread()
         super.onPause()
@@ -516,7 +601,7 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
 //                    )
                     captureSession.setRepeatingRequest(
                         captureRequestBuilder.build(),
-                        faceDetectorCallback,
+                        null,
                         Handler { true })
                 }
             }
@@ -758,14 +843,39 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
         }
     }
 
-    fun setEffectState(state: Int){
+    fun setEffectState(state: Int) {
         this.EFFECT_STATE = state
         Log.i("EFFECT_STATE", state.toString())
         Log.i("STATE", this.isPhoto.toString())
-        if (this.EFFECT_STATE == 0 && !this.isPhoto){
+        if (state == 0 && !this.isPhoto) {
             val calibrationMenu = findViewById<ConstraintLayout>(R.id.calibration_window)
             calibrationMenu.visibility = View.VISIBLE
             calibrationMenu.bringToFront()
+        }
+        else if (state == 1 && !this.isPhoto) {
+            val bpmMenu = findViewById<ConstraintLayout>(R.id.bpm_window)
+            bpmMenu.visibility = View.VISIBLE
+            bpmMenu.bringToFront()
+        }
+        else {
+            lateinit var byteArray: ByteArray
+            var byteBuffer = ByteBuffer.allocate(3)
+            byteBuffer.put(' '.toByte())
+
+            if (isPhoto) {
+                byteBuffer.put((this.EFFECT_STATE + EffectsFragment.N_EFFECTS_VIDEO).toByte())
+                byteBuffer.putInt(this.EFFECT_STATE + EffectsFragment.N_EFFECTS_VIDEO)
+//                byteArray = byteBuffer.array()
+            } else if (!isPhoto) {
+                byteBuffer.put((this.EFFECT_STATE).toByte())
+                byteBuffer.putInt(this.EFFECT_STATE)
+//                byteArray = byteBuffer.array()
+            } else {
+                throw IllegalStateException("It should be impossible to be here")
+            }
+            byteBuffer.putInt(0)
+            byteArray = byteBuffer.array()
+            val dummy = usbService.sendData(byteArray)
         }
     }
 

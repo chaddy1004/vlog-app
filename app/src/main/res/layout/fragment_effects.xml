@@ -39,12 +39,12 @@
                     android:layout_height="wrap_content"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintRight_toLeftOf="@id/video_effect"
+                    app:layout_constraintRight_toLeftOf="@id/photo_effect"
                     android:paddingEnd="32dp"
                     android:textSize="24dp"
                     android:textStyle="bold"
-                    android:text="Photo Effects"
-                    android:id="@+id/photo_effect"
+                    android:text="Video  Effects"
+                    android:id="@+id/video_effect"
                     android:clickable="true"
                     app:layout_constraintHorizontal_bias="0.491"/>
 
@@ -55,8 +55,8 @@
                     app:layout_constraintTop_toTopOf="parent"
                     android:textSize="24dp"
                     android:textStyle="bold"
-                    android:text="Video Effects"
-                    android:id="@+id/video_effect"
+                    android:text="Photo Effects"
+                    android:id="@+id/photo_effect"
                     android:clickable="true"
             />
         </android.support.constraint.ConstraintLayout>

@@ -31,7 +31,7 @@ class EffectRecyclerViewAdapter(
     private val mRecyclerView: RecyclerView,
     private val mFragment: Fragment
 ) : RecyclerView.Adapter<EffectRecyclerViewAdapter.ViewHolder>() {
-    var isPhoto = true
+    var isPhoto = false
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         if (viewType == 1) {
@@ -101,6 +101,5 @@ class EffectRecyclerViewAdapter(
         internal var effect_name: TextView = itemView.findViewById<TextView>(R.id.effect_name)
         internal var effect_description: TextView = itemView.findViewById<TextView>(R.id.effect_description)
     }
-
 
 }

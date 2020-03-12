@@ -197,7 +197,7 @@
         <Button android:layout_width="wrap_content"
                 android:id="@+id/shutter_button"
                 android:layout_height="wrap_content"
-                android:background="@drawable/shutter_button_picture"
+                android:background="@drawable/bot_shutter_button"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -221,12 +221,13 @@
             android:layout_height="wrap_content"
             android:clickable="true"
             app:srcCompat="@drawable/shutter_button_picture"
+            app:backgroundTint="@color/colorWhite"
             android:id="@+id/pictureShutterButton"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
-            android:visibility="gone"
+            android:visibility="visible"
     />
 
     <android.support.constraint.ConstraintLayout android:layout_width="match_parent"
@@ -270,11 +271,97 @@
                     android:id="@+id/setButton"
                     android:text="Set"/>
 
+            <Button android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    app:layout_constraintTop_toBottomOf="@+id/setButton"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    android:id="@+id/cancelButton"
+                    android:text="Cancel"
+            />
 
+
+        </android.support.constraint.ConstraintLayout>
+    </android.support.constraint.ConstraintLayout>
+
+    <android.support.constraint.ConstraintLayout android:layout_width="match_parent"
+                                                 android:layout_height="match_parent"
+                                                 android:background="@color/colorPurpleTheme"
+                                                 app:layout_constraintTop_toTopOf="parent"
+                                                 app:layout_constraintBottom_toBottomOf="parent"
+                                                 app:layout_constraintLeft_toLeftOf="parent"
+                                                 app:layout_constraintRight_toRightOf="parent"
+                                                 android:visibility="invisible"
+                                                 android:id="@+id/bpm_window" app:layout_constraintHorizontal_bias="0.0"
+                                                 app:layout_constraintVertical_bias="0.0">
+
+        <android.support.constraint.ConstraintLayout android:layout_width="wrap_content"
+                                                     android:layout_height="wrap_content"
+                                                     android:paddingTop="30dp"
+                                                     android:background="@color/colorWhite"
+                                                     app:layout_constraintTop_toTopOf="parent"
+                                                     app:layout_constraintBottom_toBottomOf="parent"
+                                                     app:layout_constraintRight_toRightOf="parent"
+                                                     app:layout_constraintLeft_toLeftOf="parent"
+                                                     android:id="@+id/bpm_popup">
+            <TextView android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      app:layout_constraintTop_toTopOf="parent"
+                      app:layout_constraintRight_toRightOf="parent"
+                      app:layout_constraintLeft_toLeftOf="parent"
+                      android:textStyle="bold"
+                      android:textAlignment="center"
+                      android:textColor="@color/colorBlack"
+                      android:text="Tap 4 times in beat!"
+                      android:id="@+id/bpm_description"/>
+
+            <TextView android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      app:layout_constraintTop_toBottomOf="@id/bpm_description"
+                      app:layout_constraintRight_toRightOf="parent"
+                      app:layout_constraintLeft_toLeftOf="parent"
+                      android:textStyle="bold"
+                      android:textAlignment="center"
+                      android:textColor="@color/colorBlack"
+                      android:id="@+id/bpm_display"/>
+
+            <Button android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    app:layout_constraintTop_toBottomOf="@+id/bpm_display"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    android:id="@+id/tap_button"
+                    android:text="Tap!"/>
+
+            <Button android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    app:layout_constraintTop_toBottomOf="@+id/tap_button"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    android:id="@+id/send_button"
+                    android:enabled="false"
+                    android:text="Set"/>
+
+
+            <Button android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    app:layout_constraintTop_toBottomOf="@+id/send_button"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    android:id="@+id/reset_button"
+                    android:enabled="false"
+                    android:text="Reset"/>
         </android.support.constraint.ConstraintLayout>
 
 
     </android.support.constraint.ConstraintLayout>
-
 
 </android.support.constraint.ConstraintLayout>

@@ -14,6 +14,7 @@ import android.widget.Toast;
 import com.felhr.usbserial.UsbSerialDevice;
 import com.felhr.usbserial.UsbSerialInterface;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 
 import static android.content.Context.USB_SERVICE;
@@ -62,7 +63,7 @@ public class UsbService
         @Override
         public void onReceive(Context context, Intent intent)
         {
-//            Toast.makeText(context, "Received USB broadcast", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Received USB broadcast", Toast.LENGTH_SHORT).show();
 
             if(intent.getAction().equals(ACTION_USB_PERMISSION))
             {
@@ -199,6 +200,8 @@ public class UsbService
         mUsbSerialDevice.write(data);
 
         Log.i(TAG, "Write Serial Data: " + data);
+//        int num = ByteBuffer.wrap(data).getInt();
+//        Toast.makeText(mContext, "Data: "+String.valueOf(num), Toast.LENGTH_SHORT).show();
         return true;
     }
 

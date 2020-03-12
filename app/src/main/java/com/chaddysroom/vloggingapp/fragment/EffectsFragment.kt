@@ -51,7 +51,9 @@ class EffectsFragment : Fragment(), BackPressInterface {
     private var VIDEO_EFFECTS = LinkedList<Effect?>()
     lateinit private var effectRecyclerView: RecyclerView
     lateinit private var effectRecyclerViewAdapter: EffectRecyclerViewAdapter
-    private var isPhoto = true
+    private var isPhoto = false
+
+
 
     private fun initButtons(view: View?) {
         val photo_effect = view!!.findViewById<TextView>(R.id.photo_effect)
@@ -103,7 +105,7 @@ class EffectsFragment : Fragment(), BackPressInterface {
 
     private fun initUI(view: View?) {
         effectRecyclerView = view!!.findViewById(R.id.effect_list)
-        effectRecyclerViewAdapter = EffectRecyclerViewAdapter(PHOTO_EFFECTS, this.context, effectRecyclerView, this)
+        effectRecyclerViewAdapter = EffectRecyclerViewAdapter(VIDEO_EFFECTS, this.context, effectRecyclerView, this)
         effectRecyclerView.adapter = effectRecyclerViewAdapter
         effectRecyclerView.layoutManager =
             LinearLayoutManager(activity!!.applicationContext, LinearLayoutManager.VERTICAL, false)
@@ -180,6 +182,8 @@ class EffectsFragment : Fragment(), BackPressInterface {
          * @return A new instance of fragment EffectsFragment.
          */
         // TODO: Rename and change types and number of parameters
+        val N_EFFECTS_PHOTO = 7
+        val N_EFFECTS_VIDEO = 6
         @JvmStatic
         fun newInstance(param1: String, param2: String) =
             EffectsFragment().apply {
