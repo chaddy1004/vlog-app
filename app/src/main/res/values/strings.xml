@@ -5,21 +5,50 @@
     <string name="exStorage_request_rationale">Camera app requires external storage write permission</string>
     <string name="title_activity_splash">SplashActivity</string>
 
-    <string name="photo_effect_1">Photo Effect 1</string>
-    <string name="photo_effect_2">Photo Effect 2</string>
-    <string name="photo_effect_3">Photo Effect 3</string>
-    <string name="photo_effect_4">Photo Effect 4</string>
-    <string name="photo_effect_5">Photo Effect 5</string>
-    <string name="photo_effect_6">Photo Effect 6</string>
-    <string name="photo_effect_7">Photo Effect 7</string>
 
-    <string name="photo_effect_1_description">Photo Description 1</string>
-    <string name="photo_effect_2_description">Photo Description 2</string>
-    <string name="photo_effect_3_description">Photo Description 3</string>
-    <string name="photo_effect_4_description">Photo Description 4</string>
-    <string name="photo_effect_5_description">Photo Description 5</string>
-    <string name="photo_effect_6_description">Photo Description 6</string>
-    <string name="photo_effect_7_description">Photo Description 7</string>
+    <string name="effect_0">Photo Effect 0</string>
+    <string name="effect_1">Photo Effect 2</string>
+    <string name="effect_2">Photo Effect 3</string>
+    <string name="effect_3">Photo Effect 4</string>
+    <string name="effect_4">Photo Effect 5</string>
+    <string name="effect_5">Photo Effect 6</string>
+    <string name="effect_6">Photo Effect 7</string>
+    <string name="effect_7">Photo Effect 0</string>
+    <string name="effect_8">Photo Effect 2</string>
+    <string name="effect_9">Photo Effect 3</string>
+    <string name="effect_10">Photo Effect 4</string>
+    <string name="effect_11">Photo Effect 5</string>
+    <string name="effect_12">Photo Effect 6</string>
+
+    <string name="effect_0_description">Photo Description 1</string>
+    <string name="effect_1_description">Photo Description 2</string>
+    <string name="effect_2_description">Photo Description 3</string>
+    <string name="effect_3_description">Photo Description 4</string>
+    <string name="effect_4_description">Photo Description 5</string>
+    <string name="effect_5_description">Photo Description 6</string>
+    <string name="effect_6_description">Photo Description 7</string>
+    <string name="effect_7_description">Photo Description 7</string>
+    <string name="effect_8_description">Photo Description 7</string>
+    <string name="effect_9_description">Photo Description 7</string>
+    <string name="effect_10_description">Photo Description 7</string>
+    <string name="effect_11_description">Photo Description 7</string>
+    <string name="effect_12_description">Photo Description 7</string>
+
+    <string name="photo_effect_0">Photo Effect 1</string>
+    <string name="photo_effect_1">Photo Effect 2</string>
+    <string name="photo_effect_2">Photo Effect 3</string>
+    <string name="photo_effect_3">Photo Effect 4</string>
+    <string name="photo_effect_4">Photo Effect 5</string>
+    <string name="photo_effect_5">Photo Effect 6</string>
+    <string name="photo_effect_6">Photo Effect 7</string>
+
+    <string name="photo_effect_0_description">Photo Description 1</string>
+    <string name="photo_effect_1_description">Photo Description 2</string>
+    <string name="photo_effect_2_description">Photo Description 3</string>
+    <string name="photo_effect_3_description">Photo Description 4</string>
+    <string name="photo_effect_4_description">Photo Description 5</string>
+    <string name="photo_effect_5_description">Photo Description 6</string>
+    <string name="photo_effect_6_description">Photo Description 7</string>
 
 
     <string name="video_effect_1">Video Effect 1</string>

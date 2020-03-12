@@ -864,16 +864,12 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
 
             if (isPhoto) {
                 byteBuffer.put((this.EFFECT_STATE + EffectsFragment.N_EFFECTS_VIDEO).toByte())
-                byteBuffer.putInt(this.EFFECT_STATE + EffectsFragment.N_EFFECTS_VIDEO)
-//                byteArray = byteBuffer.array()
             } else if (!isPhoto) {
                 byteBuffer.put((this.EFFECT_STATE).toByte())
-                byteBuffer.putInt(this.EFFECT_STATE)
-//                byteArray = byteBuffer.array()
             } else {
                 throw IllegalStateException("It should be impossible to be here")
             }
-            byteBuffer.putInt(0)
+            byteBuffer.put(0.toByte())
             byteArray = byteBuffer.array()
             val dummy = usbService.sendData(byteArray)
         }
