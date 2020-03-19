@@ -479,14 +479,14 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
             }
             var byteBuffer = ByteBuffer.allocate(3)
             byteBuffer.put(' '.toByte())
-            var intBPM = 0
-            if (bpmManager.getBPM() < (255*2)){
-                intBPM = (bpmManager.getBPM()/2).toInt()
-            }
-            else{
-                intBPM = (bpmManager.getBPM()/4).toInt()
-            }
-            byteBuffer.put('p'.toByte())
+            var intBPM = 60000/bpmManager.getBPM()
+//            if (bpmManager.getBPM() < (255*2)){
+//                intBPM = (bpmManager.getBPM()/2).toInt()
+//            }
+//            else{
+//                intBPM = (bpmManager.getBPM()/4).toInt()
+//            }
+            byteBuffer.put(1.toByte())
             byteBuffer.put(intBPM.toByte())
             var dummy = usbService.sendData(byteBuffer.array())
             Toast.makeText(this@MainActivity, dummy.toString(), Toast.LENGTH_SHORT).show()
@@ -847,12 +847,12 @@ class MainActivity : AppCompatActivity(), EffectsFragment.OnFragmentInteractionL
         this.EFFECT_STATE = state
         Log.i("EFFECT_STATE", state.toString())
         Log.i("STATE", this.isPhoto.toString())
-        if (state == 0 && !this.isPhoto) {
+        if (state == 0) {
             val calibrationMenu = findViewById<ConstraintLayout>(R.id.calibration_window)
             calibrationMenu.visibility = View.VISIBLE
             calibrationMenu.bringToFront()
         }
-        else if (state == 1 && !this.isPhoto) {
+        else if (state == 1) {
             val bpmMenu = findViewById<ConstraintLayout>(R.id.bpm_window)
             bpmMenu.visibility = View.VISIBLE
             bpmMenu.bringToFront()

@@ -34,32 +34,43 @@ class EffectRecyclerViewAdapter(
     var isPhoto = false
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        if (viewType == 1) {
-            val view = LayoutInflater.from(parent.context).inflate(R.layout.listitem_effect, parent, false)
-            view.setOnClickListener {
-                val position = mRecyclerView.getChildLayoutPosition(view)
-                Toast.makeText(this.mContext, effects.get(position)!!.name, Toast.LENGTH_SHORT).show()
-                val mainActivity = mFragment.activity as MainActivity
-                mainActivity.setState(true)
-                mainActivity.setEffectState(position)
-                 // sets "isPhoto" state
-                mainActivity.onBackPressed()
-            }
-            return ViewHolder(view)
-        } else {
-            val view = LayoutInflater.from(parent.context).inflate(R.layout.listitem_effect_video, parent, false)
-            view.setOnClickListener {
-                val position = mRecyclerView.getChildLayoutPosition(view)
-                Toast.makeText(this.mContext, effects.get(position)!!.name, Toast.LENGTH_SHORT).show()
-                val mainActivity = mFragment.activity as MainActivity
-//                mainActivity.EFFECT_STATE = position
-                mainActivity.setState(false)
-                mainActivity.setEffectState(position)
-                // sets "isPhoto" state to false
-                mainActivity.onBackPressed()
-            }
-            return ViewHolder(view)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.listitem_effect, parent, false)
+        view.setOnClickListener {
+            val position = mRecyclerView.getChildLayoutPosition(view)
+            Toast.makeText(this.mContext, effects.get(position)!!.name, Toast.LENGTH_SHORT).show()
+            val mainActivity = mFragment.activity as MainActivity
+            mainActivity.setState(true)
+            mainActivity.setEffectState(position)
+            // sets "isPhoto" state
+            mainActivity.onBackPressed()
         }
+        return ViewHolder(view)
+//        if (viewType == 1) {
+//            val view = LayoutInflater.from(parent.context).inflate(R.layout.listitem_effect, parent, false)
+//            view.setOnClickListener {
+//                val position = mRecyclerView.getChildLayoutPosition(view)
+//                Toast.makeText(this.mContext, effects.get(position)!!.name, Toast.LENGTH_SHORT).show()
+//                val mainActivity = mFragment.activity as MainActivity
+//                mainActivity.setState(true)
+//                mainActivity.setEffectState(position)
+//                 // sets "isPhoto" state
+//                mainActivity.onBackPressed()
+//            }
+//            return ViewHolder(view)
+//        } else {
+//            val view = LayoutInflater.from(parent.context).inflate(R.layout.listitem_effect_video, parent, false)
+//            view.setOnClickListener {
+//                val position = mRecyclerView.getChildLayoutPosition(view)
+//                Toast.makeText(this.mContext, effects.get(position)!!.name, Toast.LENGTH_SHORT).show()
+//                val mainActivity = mFragment.activity as MainActivity
+////                mainActivity.EFFECT_STATE = position
+//                mainActivity.setState(false)
+//                mainActivity.setEffectState(position)
+//                // sets "isPhoto" state to false
+//                mainActivity.onBackPressed()
+//            }
+//            return ViewHolder(view)
+//        }
 
 
     }
@@ -72,12 +83,12 @@ class EffectRecyclerViewAdapter(
     }
 
 
-    override fun getItemViewType(position: Int): Int {
-        if (isPhoto)
-            return 1
-        else
-            return 0
-    }
+//    override fun getItemViewType(position: Int): Int {
+//        if (isPhoto)
+//            return 1
+//        else
+//            return 0
+//    }
 
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -89,7 +100,6 @@ class EffectRecyclerViewAdapter(
 
         holder.effect_name.text = effects[position]!!.name
         holder.effect_description.text = effects[position]!!.description
-
     }
 
     override fun getItemCount(): Int {

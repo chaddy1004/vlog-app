@@ -50,25 +50,25 @@ class EffectsFragment : Fragment(), BackPressInterface {
 
 
 
-    private fun initButtons(view: View?) {
-        val photo_effect = view!!.findViewById<TextView>(R.id.photo_effect)
-        photo_effect.setOnClickListener {
-            if (!isPhoto) {
-                isPhoto = true
-                effectRecyclerViewAdapter.setFilterType(PHOTO_EFFECTS, isPhoto)
-            }
-        }
-
-        val video_effect = view!!.findViewById<TextView>(R.id.video_effect)
-        video_effect.setOnClickListener {
-            if (isPhoto) {
-                isPhoto = false
-                effectRecyclerViewAdapter.setFilterType(VIDEO_EFFECTS, isPhoto)
-            }
-        }
-
-
-    }
+//    private fun initButtons(view: View?) {
+//        val photo_effect = view!!.findViewById<TextView>(R.id.photo_effect)
+//        photo_effect.setOnClickListener {
+//            if (!isPhoto) {
+//                isPhoto = true
+//                effectRecyclerViewAdapter.setFilterType(PHOTO_EFFECTS, isPhoto)
+//            }
+//        }
+//
+//        val video_effect = view!!.findViewById<TextView>(R.id.video_effect)
+//        video_effect.setOnClickListener {
+//            if (isPhoto) {
+//                isPhoto = false
+//                effectRecyclerViewAdapter.setFilterType(VIDEO_EFFECTS, isPhoto)
+//            }
+//        }
+//
+//
+//    }
 
 
     private fun initEffects() {
@@ -129,7 +129,8 @@ class EffectsFragment : Fragment(), BackPressInterface {
 
     private fun initUI(view: View?) {
         effectRecyclerView = view!!.findViewById(R.id.effect_list)
-        effectRecyclerViewAdapter = EffectRecyclerViewAdapter(VIDEO_EFFECTS, this.context, effectRecyclerView, this)
+        effectRecyclerView.isNestedScrollingEnabled = true
+        effectRecyclerViewAdapter = EffectRecyclerViewAdapter(EFFECTS, this.context, effectRecyclerView, this)
         effectRecyclerView.adapter = effectRecyclerViewAdapter
         effectRecyclerView.layoutManager =
             LinearLayoutManager(activity!!.applicationContext, LinearLayoutManager.VERTICAL, false)
@@ -154,7 +155,7 @@ class EffectsFragment : Fragment(), BackPressInterface {
         // Inflate the layout for this
         val rootView = inflater.inflate(R.layout.fragment_effects, container, false)
         initUI(view = rootView)
-        initButtons(view = rootView)
+//        initButtons(view = rootView)
 
         Log.i("FRAG", "UI CREATEDR")
         return rootView

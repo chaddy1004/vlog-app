@@ -8,6 +8,7 @@ android {
     compileSdkVersion 28
 
     defaultConfig {
+        buildToolsVersion("23.0.2")
         applicationId "com.chaddysroom.vloggingapp"
         minSdkVersion 26
         targetSdkVersion 28
